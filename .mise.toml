@@ -1,2 +1,3 @@
 [tools]
 tuist = "4.21.2"
+"git-cliff" = "2.4.0"
