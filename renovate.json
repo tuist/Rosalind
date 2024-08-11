@@ -8,7 +8,6 @@
     "packageRules": [
       {
         "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-        "labels": ["changelog:updated-dependencies"],
         "automerge": true,
         "automergeType": "pr",
         "automergeStrategy": "auto"
