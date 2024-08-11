@@ -1,2 +1,2 @@
-# apple-bundle-size-analyzer
+# AppleBundleSizeAnalyzer
 

@@ -1,34 +1,29 @@
 import ProjectDescription
 
 let project = Project(
-    name: "apple-bundle-size-analyzer",
+    name: "AppleBundleSizeAnalyzer",
     targets: [
         .target(
-            name: "apple-bundle-size-analyzer",
-            destinations: .iOS,
-            product: .app,
-            bundleId: "io.tuist.apple-bundle-size-analyzer",
-            infoPlist: .extendingDefault(
-                with: [
-                    "UILaunchScreen": [
-                        "UIColorName": "",
-                        "UIImageName": "",
-                    ],
-                ]
-            ),
-            sources: ["apple-bundle-size-analyzer/Sources/**"],
-            resources: ["apple-bundle-size-analyzer/Resources/**"],
-            dependencies: []
+            name: "AppleBundleSizeAnalyzer",
+            destinations: .macOS,
+            product: .framework,
+            bundleId: "io.tuist.AppleBundleSizeAnalyzer",
+            sources: ["Sources/AppleBundleSizeAnalyzer/**"],
+            dependencies: [
+                .external(name: "Path"),
+                .external(name: "FileSystem"),
+                .external(name: "Command")
+            ]
         ),
         .target(
-            name: "apple-bundle-size-analyzerTests",
-            destinations: .iOS,
+            name: "AppleBundleSizeAnalyzerTests",
+            destinations: .macOS,
             product: .unitTests,
-            bundleId: "io.tuist.apple-bundle-size-analyzerTests",
+            bundleId: "io.tuist.AppleBundleSizeAnalyzerTests",
             infoPlist: .default,
-            sources: ["apple-bundle-size-analyzer/Tests/**"],
+            sources: ["Tests/AppleBundleSizeAnalyzerTests/**"],
             resources: [],
-            dependencies: [.target(name: "apple-bundle-size-analyzer")]
+            dependencies: [.target(name: "AppleBundleSizeAnalyzer")]
         ),
     ]
 )

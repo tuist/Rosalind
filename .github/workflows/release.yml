@@ -77,13 +77,13 @@ jobs:
           commit_options: '--allow-empty'
           tagging_message: ${{ steps.next-version.outputs.NEXT_VERSION }}
           skip_dirty_check: true
-          commit_message: "[Release] apple-bundle-size-analyzer ${{ steps.next-version.outputs.NEXT_VERSION }}"
+          commit_message: "[Release] AppleBundleSizeAnalyzer ${{ steps.next-version.outputs.NEXT_VERSION }}"
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: env.should-release == 'true'
         with:
           draft: false
-          repository: tuist/apple-bundle-size-analyzer
+          repository: tuist/AppleBundleSizeAnalyzer
           name: ${{ steps.next-version.outputs.NEXT_VERSION }}
           tag_name: ${{ steps.next-version.outputs.NEXT_VERSION }}
           body: ${{ steps.release-notes.outputs.RELEASE_NOTES }}

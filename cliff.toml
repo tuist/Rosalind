@@ -3,7 +3,7 @@
 
 [remote.github]
 owner = "tuist"
-repo = "apple-bundle-size-analyzer"
+repo = "AppleBundleSizeAnalyzer"
 # token = ""
 
 [changelog]
