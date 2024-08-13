@@ -19,7 +19,7 @@ permissions:
 jobs:
   release:
     name: Release
-    runs-on: 'ubuntu-latest'
+    runs-on: 'macos-latest'
     timeout-minutes: 15
     if: "!startsWith(github.event.head_commit.message, '[Release]')"
     steps:

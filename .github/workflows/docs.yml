@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: 'ubuntu-latest'
+    runs-on: 'macos-latest'
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
         run: mise run docs:build
   lint:
     name: Lint
-    runs-on: 'ubuntu-latest'
+    runs-on: 'macos-latest'
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
