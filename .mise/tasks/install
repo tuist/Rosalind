@@ -1,0 +1,7 @@
+#!/bin/bash
+# mise description="Performs additional tasks that are necessary to work in this repository"
+
+set -euo pipefail
+
+pnpm install -C $MISE_PROJECT_ROOT/docs/
+tuist install --path $MISE_PROJECT_ROOT

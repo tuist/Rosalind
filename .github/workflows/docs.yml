@@ -16,7 +16,7 @@ env:
 jobs:
   build:
     name: Build
-    runs-on: 'macos-latest'
+    runs-on: 'ubuntu-latest'
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -25,23 +25,3 @@ jobs:
         run: mise run install
       - name: Build
         run: mise run docs:build
-  lint:
-    name: Lint
-    runs-on: 'macos-latest'
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v2
-      - name: Restore Cache
-        uses: actions/cache@v3
-        id: mix-cache
-        with:
-          path: |
-            deps
-            _build
-            _site
-          key: mix-${{ hashFiles('mix.lock') }}
-      - name: Install dependencies
-        run: mise run install
-      - name: Run Credo
-        run: mise run lint
