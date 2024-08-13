@@ -17,6 +17,9 @@ export default defineConfig({
   title: "Apple Bundle Analyzer",
   titleTemplate: ':title | Apple Bundle Analyzer | Tuist',
   description: "Analyze Apple-generated bundles",
+  sitemap: {
+    hostname: 'https://apple-bundle-analyzer.tuist.io'
+  },
   themeConfig: {
     logo: "/logo.png",
     search: {
