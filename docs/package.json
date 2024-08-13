@@ -1,0 +1,13 @@
+{
+  "name": "@tuist/apple-bundle-analyzer",
+  "devDependencies": {
+    "vitepress": "^1.3.2",
+    "wrangler": "^3.70.0"
+  },
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name tuist-apple-bundle-analyzer --branch main"
+  }
+}
