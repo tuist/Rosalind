@@ -1,0 +1,111 @@
+name: Apple Bundle Size Analyzer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+
+env:
+  TUIST_CONFIG_TOKEN: ${{ secrets.TUIST_CONFIG_CLOUD_TOKEN }}
+  
+concurrency:
+  group: apple-bundle-size-analyzer-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: "Release build on ${{ matrix.os }}"
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        swift: ["5.10"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: ${{ matrix.swift }}
+      - uses: jdx/mise-action@v2
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        with:
+          experimental: true
+      - name: Run
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: mise run build-spm
+      - name: Run
+        if: runner.os == 'Windows'
+        run: swift build --product AppleBundleSizeAnalyzer
+
+  build_tuist:
+    name: "Tuist build"
+    timeout-minutes: 10
+    runs-on: "macos-latest"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - name: Run
+        run: |
+          mise x -- tuist install
+          mise run build
+
+  test:
+    name: "Test on ${{ matrix.os }}"
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        os: [macos-latest]
+        swift: ["5.10"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
+      - uses: SwiftyLab/setup-swift@latest
+        with:
+          swift-version: ${{ matrix.swift }}
+      - uses: jdx/mise-action@v2
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        with:
+          experimental: true
+      - name: Run
+        if: runner.os == 'Linux' || runner.os == 'macOS'
+        run: mise run test-spm
+      - name: Run
+        if: runner.os == 'Windows'
+        run: swift test
+
+  test_tuist:
+    name: "Tuist test"
+    timeout-minutes: 10
+    runs-on: "macos-latest"
+    env:
+      TUIST_CONFIG_TOKEN: ${{ secrets.TUIST_CONFIG_CLOUD_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - name: Run
+        run: |
+          mise x -- tuist install
+          mise run test
+
+  lint:
+    name: Lint
+    timeout-minutes: 10
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+        with:
+          experimental: true
+      - name: Run
+        run: mise run lint

@@ -12,7 +12,7 @@ let project = Project(
             dependencies: [
                 .external(name: "Path"),
                 .external(name: "FileSystem"),
-                .external(name: "Command")
+                .external(name: "Command"),
             ]
         ),
         .target(

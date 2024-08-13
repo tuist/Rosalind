@@ -18,18 +18,18 @@ import PackageDescription
 let package = Package(
   name: "MyProject",
   dependencies: [
-    .package(url: "https://github.com/tuist/AppleBundleAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
+    .package(url: "https://github.com/tuist/AppleBundleSizeAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
   ],
   targets: [
     .target(name: "MyProject", 
-            dependencies: ["AppleBundleAnalyzer", .product(name: "AppleBundleAnalyzer", package: "AppleBundleAnalyzer")]), // [!code ++]
+            dependencies: ["AppleBundleSizeAnalyzer", .product(name: "AppleBundleSizeAnalyzer", package: "AppleBundleSizeAnalyzer")]), // [!code ++]
   ]
 )
 ```
 
 ### Tuist
 
-First, you'll have to add the `AppleBundleAnalyzer` package to your project's `Package.swift` file:
+First, you'll have to add the `AppleBundleSizeAnalyzer` package to your project's `Package.swift` file:
 
 ```swift
 import PackageDescription
@@ -37,7 +37,7 @@ import PackageDescription
 let package = Package(
   name: "MyProject",
   dependencies: [
-    .package(url: "https://github.com/tuist/AppleBundleAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
+    .package(url: "https://github.com/tuist/AppleBundleSizeAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
   ]
 )
 ```
@@ -61,7 +61,7 @@ let project = Project(
             infoPlist: .default,
             sources: ["Targets/App/Sources/**"],
             dependencies: [
-                .external(name: "AppleBundleAnalyzer"),  // [!code ++]
+                .external(name: "AppleBundleSizeAnalyzer"),  // [!code ++]
             ]
         ),
     ]
