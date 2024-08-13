@@ -1,6 +1,7 @@
 ---
 title: "Why Apple Bundle Analyzer?"
 titleTemplate: ':title | Quick start | Apple Bundle Analyzer | Tuist'
+description: "Apple Bundle Analyzer is a tool that helps you understand the size of your Xcode bundles and how to reduce it."
 ---
 
 # Why Apple Bundle Analyzer?
