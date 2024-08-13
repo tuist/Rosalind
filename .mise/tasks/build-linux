@@ -1,0 +1,10 @@
+#!/bin/bash
+# mise description="Builds the project using Swift Package Manager in Linux"
+set -euo pipefail
+
+docker run --rm \
+    --volume "$MISE_PROJECT_ROOT:/package" \
+    --workdir "/package" \
+    swiftlang/swift:nightly-5.10-focal \
+    /bin/bash -c \
+    "swift build --product AppleBundleSizeAnalyzer --build-path ./.build/linux"

@@ -5,5 +5,5 @@ let config = Config(
 //    then uncomment the section below and set the project full-handle.
 //    * Read more: https://docs.tuist.io/guides/quick-start/gather-insights
 //
-//    fullHandle: "{account_handle}/{project_handle}",
+   fullHandle: "tuist/apple-bundle-size-analyzer"
 )

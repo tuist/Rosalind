@@ -18,7 +18,7 @@ export default defineConfig({
   titleTemplate: ':title | Apple Bundle Analyzer | Tuist',
   description: "Analyze Apple-generated bundles",
   sitemap: {
-    hostname: 'https://apple-bundle-analyzer.tuist.io'
+    hostname: 'https://apple-bundle-size-analyzer.tuist.io'
   },
   themeConfig: {
     logo: "/logo.png",
@@ -26,10 +26,10 @@ export default defineConfig({
       provider: "local",
     },
     nav: [
-      { text: "Changelog", link: "https://github.com/tuist/AppleBundleAnalyzer/releases" }
+      { text: "Changelog", link: "https://github.com/tuist/AppleBundleSizeAnalyzer/releases" }
     ],
     editLink: {
-      pattern: "https://github.com/tuist/AppleBundleAnalyzer/edit/main/docs/:path",
+      pattern: "https://github.com/tuist/AppleBundleSizeAnalyzer/edit/main/docs/:path",
     },
     sidebar: [
       {
