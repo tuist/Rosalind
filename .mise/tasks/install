@@ -4,4 +4,6 @@
 set -euo pipefail
 
 pnpm install -C $MISE_PROJECT_ROOT/docs/
-tuist install --path $MISE_PROJECT_ROOT
+if [[ "$(uname)" != "Darwin" ]]; then
+    tuist install --path $MISE_PROJECT_ROOT
+fi
