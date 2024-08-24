@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.20] - 2024-08-24
+### Details
+#### Chore
+- Update dependency vitepress to v1.3.4 by @renovate[bot] in [#27](https://github.com/tuist/AppleBundleSizeAnalyzer/pull/27)
+
 ## [0.2.19] - 2024-08-22
 ### Details
 #### Chore
@@ -112,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.2.20]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.19..0.2.20
 [0.2.19]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.18..0.2.19
 [0.2.18]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.17..0.2.18
 [0.2.17]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.16..0.2.17
