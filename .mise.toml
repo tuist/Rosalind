@@ -1,5 +1,5 @@
 [tools]
-tuist = "4.24.0"
+tuist = "4.25.0"
 "git-cliff" = "2.4.0"
 "pnpm" = "9.7"
 "nodejs" = "22.7.0"
