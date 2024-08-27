@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.22] - 2024-08-27
+### Details
+#### Chore
+- Update dependency tuist to v4.25.0 by @renovate[bot] in [#29](https://github.com/tuist/AppleBundleSizeAnalyzer/pull/29)
+
 ## [0.2.21] - 2024-08-26
 ### Details
 #### Chore
@@ -122,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.2.22]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.21..0.2.22
 [0.2.21]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.20..0.2.21
 [0.2.20]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.19..0.2.20
 [0.2.19]: https://github.com/tuist/AppleBundleSizeAnalyzer/compare/0.2.18..0.2.19
