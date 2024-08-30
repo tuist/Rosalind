@@ -8,6 +8,6 @@
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview",
-    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name tuist-apple-bundle-analyzer --branch main"
+    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name tuist-apple-artifact-analyzer --branch main"
   }
 }
