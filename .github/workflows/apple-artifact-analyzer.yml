@@ -1,4 +1,4 @@
-name: Apple Bundle Size Analyzer
+name: AppleArtifactAnalyzer
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
         run: mise run build-spm
       - name: Run
         if: runner.os == 'Windows'
-        run: swift build --product AppleBundleSizeAnalyzer
+        run: swift build --product AppleArtifactAnalyzer
 
   build_tuist:
     name: "Tuist build"

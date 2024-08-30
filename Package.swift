@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "AppleBundleSizeAnalyzer",
+    name: "AppleArtifactAnalyzer",
     platforms: [.macOS("13.0")],
     products: [
         .library(
-            name: "AppleBundleSizeAnalyzer",
+            name: "AppleArtifactAnalyzer",
             type: .static,
-            targets: ["AppleBundleSizeAnalyzer"]
+            targets: ["AppleArtifactAnalyzer"]
         ),
     ],
     dependencies: [
@@ -20,7 +20,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "AppleBundleSizeAnalyzer",
+            name: "AppleArtifactAnalyzer",
             dependencies: [
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
@@ -30,9 +30,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "AppleBundleSizeAnalyzerTests",
+            name: "AppleArtifactAnalyzerTests",
             dependencies: [
-                "AppleBundleSizeAnalyzer",
+                "AppleArtifactAnalyzer",
             ]
         ),
     ]

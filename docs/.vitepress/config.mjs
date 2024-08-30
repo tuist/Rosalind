@@ -26,10 +26,10 @@ export default defineConfig({
       provider: "local",
     },
     nav: [
-      { text: "Changelog", link: "https://github.com/tuist/AppleBundleSizeAnalyzer/releases" }
+      { text: "Changelog", link: "https://github.com/tuist/AppleArtifactAnalyzer/releases" }
     ],
     editLink: {
-      pattern: "https://github.com/tuist/AppleBundleSizeAnalyzer/edit/main/docs/:path",
+      pattern: "https://github.com/tuist/AppleArtifactAnalyzer/edit/main/docs/:path",
     },
     sidebar: [
       {

@@ -2,4 +2,4 @@
 # mise description="Test the project using Tuist"
 set -euo pipefail
 
-tuist test AppleBundleSizeAnalyzer --path $MISE_PROJECT_ROOT
+tuist test AppleArtifactAnalyzer --path $MISE_PROJECT_ROOT
