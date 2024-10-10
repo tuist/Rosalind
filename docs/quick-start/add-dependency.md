@@ -1,12 +1,12 @@
 ---
 title: "Add dependency"
-titleTemplate: ':title | Quick start | Apple Bundle Analyzer | Tuist'
-description: "Learn how to add Apple Bundle Analyzer to your project."
+titleTemplate: ':title | Quick start | Rosalind | Tuist'
+description: "Learn how to add Rosalind to your project."
 ---
 
 # Add dependency
 
-The first step is to add Apple Bundle Analyzer as a dependency to your project. The method you choose depends on the type of project you have.
+The first step is to add Rosalind as a dependency to your project. The method you choose depends on the type of project you have.
 
 ### Swift Package Manager
 
@@ -18,18 +18,18 @@ import PackageDescription
 let package = Package(
   name: "MyProject",
   dependencies: [
-    .package(url: "https://github.com/tuist/AppleArtifactAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
+    .package(url: "https://github.com/tuist/Rosalind.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
   ],
   targets: [
-    .target(name: "MyProject", 
-            dependencies: ["AppleArtifactAnalyzer", .product(name: "AppleArtifactAnalyzer", package: "AppleArtifactAnalyzer")]), // [!code ++]
+    .target(name: "MyProject",
+            dependencies: ["Rosalind", .product(name: "Rosalind", package: "Rosalind")]), // [!code ++]
   ]
 )
 ```
 
 ### Tuist
 
-First, you'll have to add the `AppleArtifactAnalyzer` package to your project's `Package.swift` file:
+First, you'll have to add the `Rosalind` package to your project's `Package.swift` file:
 
 ```swift
 import PackageDescription
@@ -37,7 +37,7 @@ import PackageDescription
 let package = Package(
   name: "MyProject",
   dependencies: [
-    .package(url: "https://github.com/tuist/AppleArtifactAnalyzer.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
+    .package(url: "https://github.com/tuist/Rosalind.git", .upToNextMajor(from: "0.1.0")) // [!code ++]
   ]
 )
 ```
@@ -61,7 +61,7 @@ let project = Project(
             infoPlist: .default,
             sources: ["Targets/App/Sources/**"],
             dependencies: [
-                .external(name: "AppleArtifactAnalyzer"),  // [!code ++]
+                .external(name: "Rosalind"),  // [!code ++]
             ]
         ),
     ]

@@ -4,14 +4,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "AppleArtifactAnalyzer",
+    name: "Rosalind",
     platforms: [.macOS("13.0")],
     products: [
         .library(
-            name: "AppleArtifactAnalyzer",
+            name: "Rosalind",
             type: .static,
-            targets: ["AppleArtifactAnalyzer"]
-        ),
+            targets: ["Rosalind"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/tuist/Path.git", .upToNextMajor(from: "0.3.4")),
@@ -20,19 +20,19 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "AppleArtifactAnalyzer",
+            name: "Rosalind",
             dependencies: [
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
             ],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency"),
+                .enableExperimentalFeature("StrictConcurrency")
             ]
         ),
         .testTarget(
-            name: "AppleArtifactAnalyzerTests",
+            name: "RosalindTests",
             dependencies: [
-                "AppleArtifactAnalyzer",
+                "Rosalind"
             ]
         ),
     ]

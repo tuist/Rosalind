@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig } from "vitepress";
 import {
   cubeOutlineIcon,
   cube02Icon,
@@ -14,11 +14,11 @@ import {
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Apple Bundle Analyzer",
-  titleTemplate: ':title | Apple Bundle Analyzer | Tuist',
+  title: "Rosalind",
+  titleTemplate: ":title | Rosalind | Tuist",
   description: "Analyze Apple-generated bundles",
   sitemap: {
-    hostname: 'https://apple-bundle-size-analyzer.tuist.io'
+    hostname: "https://rosalind.tuist.io",
   },
   themeConfig: {
     logo: "/logo.png",
@@ -26,25 +26,26 @@ export default defineConfig({
       provider: "local",
     },
     nav: [
-      { text: "Changelog", link: "https://github.com/tuist/AppleArtifactAnalyzer/releases" }
+      {
+        text: "Changelog",
+        link: "https://github.com/tuist/Rosalind/releases",
+      },
     ],
     editLink: {
-      pattern: "https://github.com/tuist/AppleArtifactAnalyzer/edit/main/docs/:path",
+      pattern: "https://github.com/tuist/Rosalind/edit/main/docs/:path",
     },
     sidebar: [
       {
         text: `<span style="display: flex; flex-direction: row; align-items: center; gap: 7px;">Quick start ${tuistIcon()}</span>`,
         items: [
-          { text: 'Why Apple Bundle Analyzer?', link: '/' },
-          { text: 'Add dependency', link: '/quick-start/add-dependency' },
-        ]
+          { text: "Why Rosalind?", link: "/" },
+          { text: "Add dependency", link: "/quick-start/add-dependency" },
+        ],
       },
       {
         text: `<span style="display: flex; flex-direction: row; align-items: center; gap: 7px;">API ${cube01Icon()}</span>`,
-        items: [
-          { text: 'Schema', link: '/api/schema' },
-        ]
-      }
+        items: [{ text: "Schema", link: "/api/schema" }],
+      },
     ],
 
     socialLinks: [
@@ -60,5 +61,5 @@ export default defineConfig({
       message: "Released under the MIT License.",
       copyright: "Copyright © 2024-present Tuist Inc.",
     },
-  }
-})
+  },
+});

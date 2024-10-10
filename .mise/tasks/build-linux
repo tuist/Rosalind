@@ -7,4 +7,4 @@ docker run --rm \
     --workdir "/package" \
     swiftlang/swift:nightly-5.10-focal \
     /bin/bash -c \
-    "swift build --product AppleArtifactAnalyzer --build-path ./.build/linux"
+    "swift build --product Rosalind --build-path ./.build/linux"

@@ -3,7 +3,7 @@
 
 [remote.github]
 owner = "tuist"
-repo = "AppleArtifactAnalyzer"
+repo = "Rosalind"
 # token = ""
 
 [changelog]
@@ -84,8 +84,8 @@ filter_unconventional = true
 split_commits = false
 # regex for preprocessing the commit messages
 commit_preprocessors = [
-  # remove issue numbers from commits
-  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
+    # remove issue numbers from commits
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "" },
 ]
 # protect breaking changes from being skipped due to matching a skipping commit_parser
 protect_breaking_commits = false
@@ -104,4 +104,4 @@ sort_commits = "newest"
 
 [bump]
 breaking_always_bump_major = true
-features_always_bump_minor=true
+features_always_bump_minor = true

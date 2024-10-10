@@ -1,4 +1,4 @@
-name: AppleArtifactAnalyzer
+name: Rosalind
 
 on:
   push:
@@ -8,9 +8,9 @@ on:
 
 env:
   TUIST_CONFIG_TOKEN: ${{ secrets.TUIST_CONFIG_CLOUD_TOKEN }}
-  
+
 concurrency:
-  group: apple-bundle-size-analyzer-${{ github.head_ref }}
+  group: rosalind-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
@@ -36,7 +36,7 @@ jobs:
         run: mise run build-spm
       - name: Run
         if: runner.os == 'Windows'
-        run: swift build --product AppleArtifactAnalyzer
+        run: swift build --product Rosalind
 
   build_tuist:
     name: "Tuist build"

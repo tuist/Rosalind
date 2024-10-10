@@ -1,5 +1,5 @@
 {
-  "name": "@tuist/apple-bundle-size-analyzer",
+  "name": "@tuist/rosalind",
   "devDependencies": {
     "vitepress": "^1.3.2",
     "wrangler": "^3.70.0"
@@ -8,6 +8,6 @@
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview",
-    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name tuist-apple-artifact-analyzer --branch main"
+    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name rosalind --branch main"
   }
 }

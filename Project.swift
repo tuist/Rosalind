@@ -1,14 +1,14 @@
 import ProjectDescription
 
 let project = Project(
-    name: "AppleArtifactAnalyzer",
+    name: "Rosalind",
     targets: [
         .target(
-            name: "AppleArtifactAnalyzer",
+            name: "Rosalind",
             destinations: .macOS,
             product: .framework,
-            bundleId: "io.tuist.AppleArtifactAnalyzer",
-            sources: ["Sources/AppleArtifactAnalyzer/**"],
+            bundleId: "io.tuist.Rosalind",
+            sources: ["Sources/Rosalind/**"],
             dependencies: [
                 .external(name: "Path"),
                 .external(name: "FileSystem"),
@@ -16,14 +16,14 @@ let project = Project(
             ]
         ),
         .target(
-            name: "AppleArtifactAnalyzerTests",
+            name: "RosalindTests",
             destinations: .macOS,
             product: .unitTests,
-            bundleId: "io.tuist.AppleArtifactAnalyzerTests",
+            bundleId: "io.tuist.RosalindTests",
             infoPlist: .default,
-            sources: ["Tests/AppleArtifactAnalyzerTests/**"],
+            sources: ["Tests/RosalindTests/**"],
             resources: [],
-            dependencies: [.target(name: "AppleArtifactAnalyzer")]
+            dependencies: [.target(name: "Rosalind")]
         ),
     ]
 )

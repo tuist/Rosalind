@@ -2,4 +2,4 @@
 # mise description="Test the project using Tuist"
 set -euo pipefail
 
-tuist test AppleArtifactAnalyzer --path $MISE_PROJECT_ROOT
+tuist test Rosalind --path $MISE_PROJECT_ROOT
