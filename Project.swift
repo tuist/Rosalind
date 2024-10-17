@@ -2,6 +2,7 @@ import ProjectDescription
 
 let project = Project(
     name: "Rosalind",
+    settings: .settings(base: ["SWIFT_STRICT_CONCURRENCY": "complete"]),
     targets: [
         .target(
             name: "Rosalind",
