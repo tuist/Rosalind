@@ -11,7 +11,7 @@ let package = Package(
             name: "Rosalind",
             type: .static,
             targets: ["Rosalind"]
-        )
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/tuist/Path.git", .upToNextMajor(from: "0.3.4")),
@@ -26,13 +26,13 @@ let package = Package(
                 .product(name: "FileSystem", package: "FileSystem"),
             ],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency")
+                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         .testTarget(
             name: "RosalindTests",
             dependencies: [
-                "Rosalind"
+                "Rosalind",
             ]
         ),
     ]
