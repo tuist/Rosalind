@@ -8,6 +8,6 @@
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview",
-    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name rosalind --branch main"
+    "deploy": "vitepress build && wrangler pages deploy .vitepress/dist --project-name tuist-rosalind --branch main"
   }
 }
