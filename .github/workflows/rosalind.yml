@@ -8,6 +8,7 @@ on:
 
 env:
   TUIST_CONFIG_TOKEN: ${{ secrets.TUIST_CONFIG_CLOUD_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 concurrency:
   group: rosalind-${{ github.head_ref }}
