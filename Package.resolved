@@ -1,13 +1,13 @@
 {
-  "originHash" : "fe0f2f60dc23ebaaf3dd67ce5b17711b8dc4888ed0c276d09183d7b1745f580b",
+  "originHash" : "645f215270865b408ba095f103a0bf8d9b1e1a56a2a9226557e34607e333dc5f",
   "pins" : [
     {
       "identity" : "command",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/Command.git",
       "state" : {
-        "revision" : "27270402bfb9cd65f6a8b83bdf59941a8c9ae368",
-        "version" : "0.8.0"
+        "revision" : "079a7803b581d3022469b3a331bccd51d48d2fc0",
+        "version" : "0.13.0"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/FileSystem.git",
       "state" : {
-        "revision" : "8d8f801c510cbb1592c53140772bf8b73a2df73c",
-        "version" : "0.3.0"
+        "revision" : "1bff6d54e90a79706a4a9d77cd081104de430361",
+        "version" : "0.7.7"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kolos65/Mockable",
       "state" : {
-        "revision" : "da977ecb20974c4b1cf185f5fd38771b2d4674fb",
-        "version" : "0.0.10"
+        "revision" : "203336d0ccb7ff03a8a03db54a4fa18fc2b0c771",
+        "version" : "0.3.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/Path.git",
       "state" : {
-        "revision" : "c70feaa3ddcb99cee0597db00aa89939a71fe8ac",
-        "version" : "0.3.4"
+        "revision" : "7c74ac435e03a927c3a73134c48b61e60221abcb",
+        "version" : "0.3.8"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log",
       "state" : {
-        "revision" : "9cb486020ebf03bfa5b5df985387a14a98744537",
-        "version" : "1.6.1"
+        "revision" : "96a2f8a0fa41e9e09af4585e2724c4e825410b91",
+        "version" : "1.6.2"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio",
       "state" : {
-        "revision" : "4c4453b489cf76e6b3b0f300aba663eb78182fad",
-        "version" : "2.70.0"
+        "revision" : "c51907a839e63ebf0ba2076bba73dd96436bd1b9",
+        "version" : "2.81.0"
       }
     },
     {
@@ -87,17 +87,26 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-system.git",
       "state" : {
-        "revision" : "d2ba781702a1d8285419c15ee62fd734a9437ff5",
-        "version" : "1.3.2"
+        "revision" : "a34201439c74b53f0fd71ef11741af7e7caf01e1",
+        "version" : "1.4.2"
+      }
+    },
+    {
+      "identity" : "xctest-dynamic-overlay",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
+      "state" : {
+        "revision" : "39de59b2d47f7ef3ca88a039dff3084688fe27f4",
+        "version" : "1.5.2"
       }
     },
     {
       "identity" : "zipfoundation",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/weichsel/ZIPFoundation",
+      "location" : "https://github.com/tuist/ZIPFoundation",
       "state" : {
-        "revision" : "02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0",
-        "version" : "0.9.19"
+        "revision" : "e9b1917bd4d7d050e0ff4ec157b5d6e253c84385",
+        "version" : "0.9.20"
       }
     }
   ],
