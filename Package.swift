@@ -16,7 +16,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/tuist/Path.git", .upToNextMajor(from: "0.3.8")),
         .package(url: "https://github.com/tuist/FileSystem.git", .upToNextMajor(from: "0.7.2")),
-        .package(url: "https://github.com/tuist/Command.git", .upToNextMajor(from: "0.12.0")),
+        .package(url: "https://github.com/tuist/Command.git", .upToNextMajor(from: "0.13.0")),
     ],
     targets: [
         .target(
