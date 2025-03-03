@@ -39,22 +39,6 @@ jobs:
         if: runner.os == 'Windows'
         run: swift build --product Rosalind
 
-  build_tuist:
-    name: "Tuist build"
-    timeout-minutes: 10
-    runs-on: "macos-latest"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
-      - uses: jdx/mise-action@v2
-        with:
-          experimental: true
-      - name: Run
-        run: |
-          mise x -- tuist install
-          mise run build
-
   test:
     name: "Test on ${{ matrix.os }}"
     timeout-minutes: 10
@@ -80,24 +64,6 @@ jobs:
       - name: Run
         if: runner.os == 'Windows'
         run: swift test
-
-  test_tuist:
-    name: "Tuist test"
-    timeout-minutes: 10
-    runs-on: "macos-latest"
-    env:
-      TUIST_CONFIG_TOKEN: ${{ secrets.TUIST_CONFIG_CLOUD_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
-      - uses: jdx/mise-action@v2
-        with:
-          experimental: true
-      - name: Run
-        run: |
-          mise x -- tuist install
-          mise run test
 
   lint:
     name: Lint
