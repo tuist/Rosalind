@@ -34,7 +34,7 @@ jobs:
           experimental: true
       - name: Run
         if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: mise run build-spm
+        run: mise run build
       - name: Run
         if: runner.os == 'Windows'
         run: swift build --product Rosalind
@@ -60,7 +60,7 @@ jobs:
           experimental: true
       - name: Run
         if: runner.os == 'Linux' || runner.os == 'macOS'
-        run: mise run test-spm
+        run: mise run test
       - name: Run
         if: runner.os == 'Windows'
         run: swift test
