@@ -120,10 +120,6 @@ iOSInjectionProject/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,swift
 
-### Projects ###
-*.xcodeproj
-*.xcworkspace
-
 ### Tuist derived files ###
 graph.dot
 Derived/
@@ -277,3 +273,6 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/node
 
 docs/.vitepress/cache
+
+.swiftpm/**/*.xcworkspace/
+.swiftpm/**/*.xcodeproj/
