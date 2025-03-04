@@ -24,6 +24,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
+                .product(name: "Command", package: "Command"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
