@@ -30,7 +30,7 @@ import Testing
                         "CODE_SIGN_IDENTITY=''", "CODE_SIGNING_REQUIRED=NO", "CODE_SIGN_ENTITLEMENTS=''",
                         "CODE_SIGNING_ALLOWED=NO",
                     ]
-                ).awaitCompletion()
+                ).pipedStream().awaitCompletion()
 
                 // When
                 let got = try await subject
