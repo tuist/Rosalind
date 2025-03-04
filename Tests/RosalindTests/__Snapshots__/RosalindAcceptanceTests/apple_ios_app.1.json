@@ -1,0 +1,47 @@
+{
+  "app" : {
+    "children" : [
+      {
+        "unknown" : {
+          "children" : [
+
+          ],
+          "path" : "App"
+        }
+      },
+      {
+        "unknown" : {
+          "children" : [
+
+          ],
+          "path" : "App.debug.dylib"
+        }
+      },
+      {
+        "unknown" : {
+          "children" : [
+
+          ],
+          "path" : "Info.plist"
+        }
+      },
+      {
+        "unknown" : {
+          "children" : [
+
+          ],
+          "path" : "PkgInfo"
+        }
+      },
+      {
+        "unknown" : {
+          "children" : [
+
+          ],
+          "path" : "__preview.dylib"
+        }
+      }
+    ],
+    "path" : "."
+  }
+}

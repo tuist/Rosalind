@@ -3,6 +3,7 @@ import FileSystem
 import Foundation
 import Path
 import Rosalind
+import SnapshotTesting
 import Testing
 
 @Suite(.serialized) struct RosalindAcceptanceTests {
@@ -39,7 +40,7 @@ import Testing
                     )
 
                 // Then
-                #expect(got == Report())
+                assertSnapshot(of: got, as: .json)
             }
         }
     #endif

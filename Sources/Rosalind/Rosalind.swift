@@ -28,7 +28,18 @@ public struct Rosalind: Rosalindable {
         self.fileSystem = fileSystem
     }
 
-    public func analyze(path _: AbsolutePath) async throws -> Report {
-        Report()
+    public func analyze(path: AbsolutePath) async throws -> Report {
+        if !(try await fileSystem.exists(path)) { throw RosalindError.notFound(path) }
+        return try await traverse(path: path, normalizingPath: path)
+    }
+
+    public func traverse(path: AbsolutePath, normalizingPath: AbsolutePath) async throws -> Report {
+        let children: [Report] = try await (try await fileSystem.glob(directory: path, include: ["*"]).collect()).sorted()
+            .asyncMap { try await traverse(path: $0, normalizingPath: normalizingPath) }
+        if path.extension == "app" {
+            return .app(path: path.relative(to: normalizingPath).pathString, children: children)
+        } else {
+            return .unknown(path: path.relative(to: normalizingPath).pathString, children: children)
+        }
     }
 }
