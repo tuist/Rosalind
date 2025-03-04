@@ -7,6 +7,7 @@
 
           ],
           "path" : "App",
+          "shasum" : "78c029c60a7fc96d103409024a31a65f64db44eedce46436bec6e307e6d74b76",
           "size" : 70880
         }
       },
@@ -16,6 +17,7 @@
 
           ],
           "path" : "App.debug.dylib",
+          "shasum" : "b11bda67d3694ce1a7cce2fba12a7a737f4e6184f78c6c391e261483649fae21",
           "size" : 126488
         }
       },
@@ -25,6 +27,7 @@
 
           ],
           "path" : "Info.plist",
+          "shasum" : "d27f213cc0f6fecc1f3711ae343b264a332b4b087531bb77f81fbae2ec7e0933",
           "size" : 1241
         }
       },
@@ -34,6 +37,7 @@
 
           ],
           "path" : "PkgInfo",
+          "shasum" : "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
           "size" : 8
         }
       },
@@ -43,11 +47,13 @@
 
           ],
           "path" : "__preview.dylib",
+          "shasum" : "537e6fa5ef09aafaa90e929cdc259b90277444f09fc645a9429a7b8bfba377cb",
           "size" : 16464
         }
       }
     ],
     "path" : ".",
+    "shasum" : "d8a4a603a9958dc8245477dd89d0dca6bb0c34c2cb3cf40a30f6637ea069b88f",
     "size" : 215081
   }
 }
