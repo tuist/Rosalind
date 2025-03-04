@@ -36,10 +36,22 @@ public struct Rosalind: Rosalindable {
     public func traverse(path: AbsolutePath, normalizingPath: AbsolutePath) async throws -> Report {
         let children: [Report] = try await (try await fileSystem.glob(directory: path, include: ["*"]).collect()).sorted()
             .asyncMap { try await traverse(path: $0, normalizingPath: normalizingPath) }
-        if path.extension == "app" {
-            return .app(path: path.relative(to: normalizingPath).pathString, children: children)
+
+        var size = 0
+        if try await fileSystem.exists(path, isDirectory: true) {
+            size = children.reduce(Int(0)) { acc, next in
+                var acc = acc
+                acc += next.size
+                return acc
+            }
         } else {
-            return .unknown(path: path.relative(to: normalizingPath).pathString, children: children)
+            size = ((try FileManager.default.attributesOfItem(atPath: path.pathString))[.size] as? Int) ?? 0
+        }
+
+        if path.extension == "app" {
+            return .app(path: path.relative(to: normalizingPath).pathString, size: size, children: children)
+        } else {
+            return .unknown(path: path.relative(to: normalizingPath).pathString, size: size, children: children)
         }
     }
 }
