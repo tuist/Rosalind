@@ -1,25 +1,13 @@
-import JSONSchema
-import JSONSchemaBuilder
-
-@Schemable
-public enum RosalindReport: Sendable, Codable, Equatable {
-    indirect case app(path: String, size: Int, shasum: String, children: [RosalindReport])
-    indirect case directory(path: String, size: Int, shasum: String, children: [RosalindReport])
-    indirect case file(path: String, size: Int, shasum: String, children: [RosalindReport])
-
-    var size: Int {
-        switch self {
-        case let .app(_, size, _, _): return size
-        case let .directory(_, size, _, _): return size
-        case let .file(_, size, _, _): return size
-        }
+public struct RosalindReport: Sendable, Codable, Equatable {
+    public enum ArtifactType: String, Sendable, Codable, Equatable {
+        case app
+        case directory
+        case file
     }
 
-    var shasum: String {
-        switch self {
-        case let .app(_, _, shasum, _): return shasum
-        case let .directory(_, _, shasum, _): return shasum
-        case let .file(_, _, shasum, _): return shasum
-        }
-    }
+    public let artifactType: ArtifactType
+    public let path: String
+    public let size: Int
+    public let shasum: String
+    public let children: [RosalindReport]?
 }

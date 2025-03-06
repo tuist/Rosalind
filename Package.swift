@@ -17,15 +17,19 @@ let package = Package(
         .package(url: "https://github.com/tuist/Path.git", .upToNextMajor(from: "0.3.8")),
         .package(url: "https://github.com/tuist/FileSystem.git", .upToNextMajor(from: "0.7.7")),
         .package(url: "https://github.com/tuist/Command.git", .upToNextMajor(from: "0.13.0")),
-        .package(url: "https://github.com/ajevans99/swift-json-schema", exact: "0.3.2"),
-        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", .upToNextMajor(from: "1.18.1")),
+        .package(
+            url: "https://github.com/pointfreeco/swift-snapshot-testing",
+            .upToNextMajor(from: "1.18.1")
+        ),
+        // To our surprise (note the irony), CryptoSwift is an AppleOS-only framework, therefore
+        // crypto capabilities need to be imported using a package.
+        .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.11.1")),
     ],
     targets: [
         .target(
             name: "Rosalind",
             dependencies: [
-                .product(name: "JSONSchema", package: "swift-json-schema"),
-                .product(name: "JSONSchemaBuilder", package: "swift-json-schema"),
+                .product(name: "Crypto", package: "swift-crypto"),
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
                 .product(name: "Command", package: "Command"),

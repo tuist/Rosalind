@@ -1,5 +1,4 @@
 import Command
-import CryptoKit
 @preconcurrency import FileSystem
 import Foundation
 import Path
@@ -82,34 +81,31 @@ public struct Rosalind: Rosalindable {
     }
 
     private func traverse(artifact: Artifact, baseArtifact: Artifact) async throws -> RosalindReport {
-        let children: [RosalindReport] = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
-            .asyncMap {
-                try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
-            }
-        let size = try await size(artifact: artifact, children: children)
-        let shasum = try await shasum(artifact: artifact, children: children)
-        if artifact.path.extension == "app" {
-            return .app(
-                path: artifact.path.relative(to: baseArtifact.path).pathString,
-                size: size,
-                shasum: shasum,
-                children: children
-            )
-        } else if artifact.isDirectory {
-            return .directory(
-                path: artifact.path.relative(to: baseArtifact.path).pathString,
-                size: size,
-                shasum: shasum,
-                children: children
-            )
+        let children: [RosalindReport]? = if artifact.isDirectory {
+            try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
+                .asyncMap {
+                    try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
+                }
         } else {
-            return .file(
-                path: artifact.path.relative(to: baseArtifact.path).pathString,
-                size: size,
-                shasum: shasum,
-                children: children
-            )
+            nil
         }
+
+        let size = try await size(artifact: artifact, children: children ?? [])
+        let shasum = try await shasum(artifact: artifact, children: children ?? [])
+        let artifactType: RosalindReport.ArtifactType = if artifact.path.extension == "app" {
+            .app
+        } else if artifact.isDirectory {
+            .directory
+        } else {
+            .file
+        }
+        return RosalindReport(
+            artifactType: artifactType,
+            path: artifact.path.relative(to: baseArtifact.path).pathString,
+            size: size,
+            shasum: shasum,
+            children: children
+        )
     }
 
     private func shasum(artifact: Artifact, children: [RosalindReport]) async throws -> String {
