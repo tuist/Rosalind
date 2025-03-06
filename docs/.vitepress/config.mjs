@@ -44,17 +44,19 @@ export default defineConfig({
       },
       {
         text: `<span style="display: flex; flex-direction: row; align-items: center; gap: 7px;">API ${cube01Icon()}</span>`,
-        items: [{ text: "Schema", link: "/api/schema" }],
+        items: [
+          { text: "Rosalind", link: "/api/rosalind" },
+          { text: "Schema", link: "/api/schema" },
+        ],
       },
     ],
 
     socialLinks: [
       { icon: "github", link: "https://github.com/tuist/tuist" },
-      { icon: "x", link: "https://x.com/tuistio" },
       { icon: "mastodon", link: "https://fosstodon.org/@tuist" },
       {
-        icon: "slack",
-        link: "https://slack.tuist.io",
+        icon: "discourse",
+        link: "https://community.tuist.dev",
       },
     ],
     footer: {
