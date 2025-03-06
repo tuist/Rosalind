@@ -40,7 +40,7 @@ import Testing
                     )
 
                 // Then
-                assertSnapshot(of: got, as: .json)
+                assertSnapshot(of: got, as: .rosalind())
             }
         }
     #endif
