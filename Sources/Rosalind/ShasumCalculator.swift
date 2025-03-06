@@ -28,16 +28,16 @@ struct ShasumCalculator: ShasumCalculating {
         defer { try? fileHandle.close() }
 
         var hasher = SHA256()
-
         let chunkSize = 1024 * 1024
 
-        while autoreleasepool(invoking: {
+        var shouldContinue = true
+        while shouldContinue {
             guard let data = try? fileHandle.read(upToCount: chunkSize), !data.isEmpty else {
-                return false
+                shouldContinue = false
+                continue
             }
             hasher.update(data: data)
-            return true
-        }) {}
+        }
 
         let digest = hasher.finalize()
         return digest.compactMap { String(format: "%02x", $0) }.joined()
