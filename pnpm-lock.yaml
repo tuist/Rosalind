@@ -19,7 +19,7 @@ importers:
         version: 1.6.3(@algolia/client-search@5.20.3)(postcss@8.5.3)(search-insights@2.17.3)
       wrangler:
         specifier: ^3.70.0
-        version: 3.113.0
+        version: 3.114.0
 
 packages:
 
@@ -1390,8 +1390,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.113.0:
-    resolution: {integrity: sha512-Fr7sxO9kNFoN12AZLdwkQEnHN7pf1FziOfmEZsQIvyyMJTQC0HMWWS9LEsMdxJf0X9okoRMXLPfE9wtz1C1SIg==}
+  wrangler@3.114.0:
+    resolution: {integrity: sha512-cY0HxgU5yuc24tE1Y4KD2n9UzYYEx+9lSL7p/Sqj18SgDfwyiMPY/FryXQAPYLuD/S+dxArRQyeEkFSokIr75Q==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -2696,7 +2696,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250224.0
       '@cloudflare/workerd-windows-64': 1.20250224.0
 
-  wrangler@3.113.0:
+  wrangler@3.114.0:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/unenv-preset': 2.0.0(unenv@2.0.0-rc.8)(workerd@1.20250224.0)
