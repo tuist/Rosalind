@@ -5,4 +5,220 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.25] - 2025-03-26
+### Details
+#### Chore
+- Add release pipeline by @fortmarek
+- Update dependency tuist/filesystem to from: "0.7.9" by @renovate[bot] in [#90](https://github.com/tuist/Rosalind/pull/90)
+- Lock file maintenance by @renovate[bot] in [#89](https://github.com/tuist/Rosalind/pull/89)
+- Update dependency tuist/filesystem to from: "0.7.8" by @renovate[bot] in [#88](https://github.com/tuist/Rosalind/pull/88)
+- Update dependency pnpm to v10.6.5 by @renovate[bot] in [#87](https://github.com/tuist/Rosalind/pull/87)
+- Update dependency wrangler to v3.114.2 by @renovate[bot] in [#86](https://github.com/tuist/Rosalind/pull/86)
+- Update dependency pnpm to v10.6.4 by @renovate[bot] in [#85](https://github.com/tuist/Rosalind/pull/85)
+- Lock file maintenance by @renovate[bot] in [#84](https://github.com/tuist/Rosalind/pull/84)
+- Update dependency pnpm to v10.6.3 by @renovate[bot] in [#82](https://github.com/tuist/Rosalind/pull/82)
+- Update dependency apple/swift-crypto to from: "3.12.2" by @renovate[bot] in [#81](https://github.com/tuist/Rosalind/pull/81)
+- Update dependency wrangler to v3.114.1 by @renovate[bot] in [#80](https://github.com/tuist/Rosalind/pull/80)
+- Update dependency apple/swift-crypto to from: "3.11.2" by @renovate[bot] in [#79](https://github.com/tuist/Rosalind/pull/79)
+- Update dependency pnpm to v10.6.2 by @renovate[bot] in [#78](https://github.com/tuist/Rosalind/pull/78)
+- Update dependency esbuild to v0.25.1 by @renovate[bot] in [#77](https://github.com/tuist/Rosalind/pull/77)
+- Lock file maintenance by @renovate[bot] in [#76](https://github.com/tuist/Rosalind/pull/76)
+- Update dependency pnpm to v10.6.1 by @renovate[bot] in [#75](https://github.com/tuist/Rosalind/pull/75)
+- Update dependency wrangler to v3.114.0 by @renovate[bot] in [#74](https://github.com/tuist/Rosalind/pull/74)
+- Update dependency pnpm to v10.6.0 by @renovate[bot] in [#73](https://github.com/tuist/Rosalind/pull/73)
+- Update dependency wrangler to v3.113.0 by @renovate[bot]
+- Update dependency wrangler to v3.112.0 by @renovate[bot]
+- Update node.js to v22.14.0 by @renovate[bot]
+- Update dependency tuist/filesystem to from: "0.7.7" by @renovate[bot]
+- Update dependency tuist/command to from: "0.13.0" by @renovate[bot]
+- Lock file maintenance by @renovate[bot]
+- Update dependency pnpm to v10 by @renovate[bot]
+- Update dependency wrangler to v3.111.0 by @renovate[bot]
+- Update dependency wrangler to v3.105.1 by @renovate[bot]
+- Update dependency tuist/command to from: "0.12.0" by @renovate[bot]
+- Update dependency tuist/filesystem to from: "0.7.2" by @renovate[bot]
+- Update dependency vitepress to v1.6.3 by @renovate[bot]
+- Update dependency pnpm to v9.15.4 by @renovate[bot]
+- Update node.js to v22.13.1 by @renovate[bot]
+- Update dependency tuist to v4.40.0 by @renovate[bot]
+- Lock file maintenance by @renovate[bot]
+- Update dependency wrangler to v3.83.0 by @renovate[bot] in [#49](https://github.com/tuist/Rosalind/pull/49)
+- Update dependency tuist/filesystem to from: "0.4.8" by @renovate[bot] in [#48](https://github.com/tuist/Rosalind/pull/48)
+- Update dependency tuist/filesystem to from: "0.4.7" by @renovate[bot] in [#47](https://github.com/tuist/Rosalind/pull/47)
+- Update actions/checkout digest to 11bd719 by @renovate[bot] in [#46](https://github.com/tuist/Rosalind/pull/46)
+- Update dependency tuist/filesystem to from: "0.4.5" by @renovate[bot] in [#45](https://github.com/tuist/Rosalind/pull/45)
+- Update dependency tuist to v4.31.0 by @renovate[bot] in [#44](https://github.com/tuist/Rosalind/pull/44)
+- Update dependency wrangler to v3.82.0 by @renovate[bot] in [#43](https://github.com/tuist/Rosalind/pull/43)
+- Lock file maintenance by @renovate[bot] in [#42](https://github.com/tuist/Rosalind/pull/42)
+- Update dependency wrangler to v3.81.0 by @renovate[bot] in [#41](https://github.com/tuist/Rosalind/pull/41)
+- Update dependency tuist/path to from: "0.3.8" by @renovate[bot]
+- Update dependency node to v22.10.0 by @renovate[bot]
+- Lock file maintenance by @renovate[bot]
+- Update dependency tuist/filesystem to from: "0.4.4" by @renovate[bot]
+- Update dependency tuist to v4.30.0 by @renovate[bot]
+- Update actions/checkout digest to eef6144 by @renovate[bot]
+- Update dependency tuist/command to from: "0.9.32" by @renovate[bot]
+- Update dependency wrangler to v3.80.3 by @renovate[bot]
+
+## New Contributors
+* @fortmarek made their first contribution
 ## [0.2.24] - 2024-08-28
+### Details
+#### Chore
+- Update dependency tuist/path to from: "0.3.4" by @renovate[bot] in [#31](https://github.com/tuist/Rosalind/pull/31)
+
+## [0.2.23] - 2024-08-27
+### Details
+#### Chore
+- Update dependency wrangler to v3.72.3 by @renovate[bot] in [#30](https://github.com/tuist/Rosalind/pull/30)
+
+## [0.2.22] - 2024-08-27
+### Details
+#### Chore
+- Update dependency tuist to v4.25.0 by @renovate[bot] in [#29](https://github.com/tuist/Rosalind/pull/29)
+
+## [0.2.21] - 2024-08-26
+### Details
+#### Chore
+- Lock file maintenance by @renovate[bot] in [#28](https://github.com/tuist/Rosalind/pull/28)
+
+## [0.2.20] - 2024-08-24
+### Details
+#### Chore
+- Update dependency vitepress to v1.3.4 by @renovate[bot] in [#27](https://github.com/tuist/Rosalind/pull/27)
+
+## [0.2.19] - 2024-08-22
+### Details
+#### Chore
+- Update dependency wrangler to v3.72.2 by @renovate[bot] in [#26](https://github.com/tuist/Rosalind/pull/26)
+
+## [0.2.18] - 2024-08-22
+### Details
+#### Chore
+- Update dependency node to v22.7.0 by @renovate[bot] in [#25](https://github.com/tuist/Rosalind/pull/25)
+
+## [0.2.17] - 2024-08-21
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.8.0" by @renovate[bot] in [#24](https://github.com/tuist/Rosalind/pull/24)
+
+## [0.2.16] - 2024-08-20
+### Details
+#### Chore
+- Update dependency wrangler to v3.72.1 by @renovate[bot] in [#23](https://github.com/tuist/Rosalind/pull/23)
+
+## [0.2.15] - 2024-08-20
+### Details
+#### Chore
+- Update dependency tuist/path to from: "0.3.3" by @renovate[bot] in [#21](https://github.com/tuist/Rosalind/pull/21)
+
+## [0.2.14] - 2024-08-20
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.8" by @renovate[bot] in [#22](https://github.com/tuist/Rosalind/pull/22)
+
+## [0.2.13] - 2024-08-20
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.7" by @renovate[bot] in [#20](https://github.com/tuist/Rosalind/pull/20)
+
+## [0.2.12] - 2024-08-19
+### Details
+#### Chore
+- Update dependency tuist to v4.24.0 by @renovate[bot] in [#19](https://github.com/tuist/Rosalind/pull/19)
+
+## [0.2.11] - 2024-08-19
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.6" by @renovate[bot] in [#18](https://github.com/tuist/Rosalind/pull/18)
+
+## [0.2.10] - 2024-08-19
+### Details
+#### Chore
+- Lock file maintenance by @renovate[bot] in [#17](https://github.com/tuist/Rosalind/pull/17)
+
+## [0.2.9] - 2024-08-17
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.5" by @renovate[bot] in [#16](https://github.com/tuist/Rosalind/pull/16)
+
+## [0.2.8] - 2024-08-17
+### Details
+#### Chore
+- Update dependency vitepress to v1.3.3 by @renovate[bot] in [#15](https://github.com/tuist/Rosalind/pull/15)
+
+## [0.2.7] - 2024-08-16
+### Details
+#### Chore
+- Update dependency wrangler to v3.72.0 by @renovate[bot] in [#14](https://github.com/tuist/Rosalind/pull/14)
+
+## [0.2.6] - 2024-08-16
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.4" by @renovate[bot] in [#13](https://github.com/tuist/Rosalind/pull/13)
+
+## [0.2.5] - 2024-08-15
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.3" by @renovate[bot] in [#12](https://github.com/tuist/Rosalind/pull/12)
+
+## [0.2.4] - 2024-08-15
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.2" by @renovate[bot] in [#11](https://github.com/tuist/Rosalind/pull/11)
+
+## [0.2.3] - 2024-08-14
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.1" by @renovate[bot] in [#10](https://github.com/tuist/Rosalind/pull/10)
+
+## [0.2.2] - 2024-08-13
+### Details
+#### Chore
+- Update dependency wrangler to v3.71.0 by @renovate[bot] in [#9](https://github.com/tuist/Rosalind/pull/9)
+
+## [0.2.1] - 2024-08-13
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.7.0" by @renovate[bot]
+
+## [0.2.0] - 2024-08-13
+### Details
+#### Feat
+- Add documentation site by @pepicrft
+
+## [0.1.0] - 2024-08-12
+### Details
+#### Chore
+- Update dependency tuist/command to from: "0.6.3" by @renovate[bot] in [#5](https://github.com/tuist/Rosalind/pull/5)
+- Update dependency tuist to v4.23.0 by @renovate[bot]
+- Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
+
+[0.2.25]: https://github.com/tuist/Rosalind/compare/0.2.24..0.2.25
+[0.2.24]: https://github.com/tuist/Rosalind/compare/0.2.23..0.2.24
+[0.2.23]: https://github.com/tuist/Rosalind/compare/0.2.22..0.2.23
+[0.2.22]: https://github.com/tuist/Rosalind/compare/0.2.21..0.2.22
+[0.2.21]: https://github.com/tuist/Rosalind/compare/0.2.20..0.2.21
+[0.2.20]: https://github.com/tuist/Rosalind/compare/0.2.19..0.2.20
+[0.2.19]: https://github.com/tuist/Rosalind/compare/0.2.18..0.2.19
+[0.2.18]: https://github.com/tuist/Rosalind/compare/0.2.17..0.2.18
+[0.2.17]: https://github.com/tuist/Rosalind/compare/0.2.16..0.2.17
+[0.2.16]: https://github.com/tuist/Rosalind/compare/0.2.15..0.2.16
+[0.2.15]: https://github.com/tuist/Rosalind/compare/0.2.14..0.2.15
+[0.2.14]: https://github.com/tuist/Rosalind/compare/0.2.13..0.2.14
+[0.2.13]: https://github.com/tuist/Rosalind/compare/0.2.12..0.2.13
+[0.2.12]: https://github.com/tuist/Rosalind/compare/0.2.11..0.2.12
+[0.2.11]: https://github.com/tuist/Rosalind/compare/0.2.10..0.2.11
+[0.2.10]: https://github.com/tuist/Rosalind/compare/0.2.9..0.2.10
+[0.2.9]: https://github.com/tuist/Rosalind/compare/0.2.8..0.2.9
+[0.2.8]: https://github.com/tuist/Rosalind/compare/0.2.7..0.2.8
+[0.2.7]: https://github.com/tuist/Rosalind/compare/0.2.6..0.2.7
+[0.2.6]: https://github.com/tuist/Rosalind/compare/0.2.5..0.2.6
+[0.2.5]: https://github.com/tuist/Rosalind/compare/0.2.4..0.2.5
+[0.2.4]: https://github.com/tuist/Rosalind/compare/0.2.3..0.2.4
+[0.2.3]: https://github.com/tuist/Rosalind/compare/0.2.2..0.2.3
+[0.2.2]: https://github.com/tuist/Rosalind/compare/0.2.1..0.2.2
+[0.2.1]: https://github.com/tuist/Rosalind/compare/0.2.0..0.2.1
+[0.2.0]: https://github.com/tuist/Rosalind/compare/0.1.0..0.2.0
+
+<!-- generated by git-cliff -->
