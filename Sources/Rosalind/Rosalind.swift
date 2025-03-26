@@ -77,7 +77,25 @@ public struct Rosalind: Rosalindable {
     /// - Returns: A `RosalindReport` instance that captures the analysis.
     public func analyze(path: AbsolutePath) async throws -> RosalindReport {
         guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
-        return try await traverse(artifact: pathToArtifact(path), baseArtifact: pathToArtifact(path))
+        let artifact: Artifact
+        if path.extension == "xcarchive" {
+            guard let appPath = try await fileSystem.glob(
+                directory: path.appending(components: "Products", "Applications"),
+                include: ["*.app"]
+            )
+            .collect()
+            .first
+            else { fatalError() }
+            artifact = try await pathToArtifact(
+                appPath
+            )
+        } else {
+            artifact = try await pathToArtifact(path)
+        }
+        return try await traverse(
+            artifact: artifact,
+            baseArtifact: artifact
+        )
     }
 
     private func traverse(artifact: Artifact, baseArtifact: Artifact) async throws -> RosalindReport {
@@ -92,16 +110,19 @@ public struct Rosalind: Rosalindable {
 
         let size = try await size(artifact: artifact, children: children ?? [])
         let shasum = try await shasum(artifact: artifact, children: children ?? [])
-        let artifactType: RosalindReport.ArtifactType = if artifact.path.extension == "app" {
-            .app
-        } else if artifact.isDirectory {
-            .directory
-        } else {
-            .file
+        let artifactType: RosalindReport.ArtifactType = switch artifact.path.extension {
+        case "otf", "ttc", "ttf", "woff": .font
+        default:
+            if artifact.isDirectory {
+                .directory
+            } else {
+                .file
+            }
         }
         return RosalindReport(
             artifactType: artifactType,
-            path: artifact.path.relative(to: baseArtifact.path).pathString,
+            path: try RelativePath(validating: baseArtifact.path.basename)
+                .appending(artifact.path.relative(to: baseArtifact.path)).pathString,
             size: size,
             shasum: shasum,
             children: children
