@@ -2,6 +2,7 @@ import Command
 @preconcurrency import FileSystem
 import Foundation
 import Path
+import MachOKit
 
 enum RosalindError: LocalizedError {
     case notFound(AbsolutePath)
@@ -110,15 +111,7 @@ public struct Rosalind: Rosalindable {
 
         let size = try await size(artifact: artifact, children: children ?? [])
         let shasum = try await shasum(artifact: artifact, children: children ?? [])
-        let artifactType: RosalindReport.ArtifactType = switch artifact.path.extension {
-        case "otf", "ttc", "ttf", "woff": .font
-        default:
-            if artifact.isDirectory {
-                .directory
-            } else {
-                .file
-            }
-        }
+        let artifactType = try artifactType(for: artifact)
         return RosalindReport(
             artifactType: artifactType,
             path: try RelativePath(validating: baseArtifact.path.basename)
@@ -127,6 +120,26 @@ public struct Rosalind: Rosalindable {
             shasum: shasum,
             children: children
         )
+    }
+    
+    private func artifactType(for artifact: Artifact) throws -> RosalindReport.ArtifactType {
+        switch artifact.path.extension {
+        case "otf", "ttc", "ttf", "woff": return .font
+        default:
+            if artifact.isDirectory {
+                return .directory
+            } else {
+                let fileHandle = try FileHandle(forReadingFrom: URL(fileURLWithPath: artifact.path.pathString))
+                
+                if
+                    let magicRaw: UInt32 = fileHandle.read(offset: 0),
+                    let magic = Magic(rawValue: magicRaw) {
+                    return .binary
+                } else {
+                    return .file
+                }
+            }
+        }
     }
 
     private func shasum(artifact: Artifact, children: [RosalindReport]) async throws -> String {
@@ -149,3 +162,22 @@ public struct Rosalind: Rosalindable {
         }
     }
 }
+
+extension FileHandle {
+    @_spi(Support)
+    public func read<Element>(
+        offset: UInt64,
+        swapHandler: ((inout Data) -> Void)? = nil
+    ) -> Element? {
+        seek(toFileOffset: offset)
+        var data = readData(
+            ofLength: MemoryLayout<Element>.size
+        )
+        guard data.count >= MemoryLayout<Element>.size else { return nil }
+        if let swapHandler { swapHandler(&data) }
+        return data.withUnsafeBytes {
+            $0.load(as: Element.self)
+        }
+    }
+}
+

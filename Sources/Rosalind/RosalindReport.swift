@@ -4,6 +4,7 @@ public struct RosalindReport: Sendable, Codable, Equatable {
         case directory
         case file
         case font
+        case binary
     }
 
     public let artifactType: ArtifactType
