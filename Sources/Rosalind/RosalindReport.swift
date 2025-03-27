@@ -14,6 +14,7 @@ public struct Artifact: Sendable, Codable, Equatable {
         case file
         case font
         case binary
+        case localization
     }
 
     public let artifactType: ArtifactType
