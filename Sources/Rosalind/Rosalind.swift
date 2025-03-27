@@ -107,13 +107,14 @@ public struct Rosalind: Rosalindable {
                 artifact: artifactPath,
                 baseArtifact: artifactPath
             )
+            let appBundle = try await AppBundleLoader().load(appPath)
             
             return AppReport(
-                bundleId: "",
+                bundleId: appBundle.infoPlist.bundleId,
                 name: appPath.basenameWithoutExt,
                 size: artifact.size,
-                platform: "",
-                appVersion: "",
+                platform: appBundle.infoPlist.supportedPlatforms.first ?? "",
+                appVersion: appBundle.infoPlist.version,
                 artifacts: artifact.children ?? []
             )
         }
