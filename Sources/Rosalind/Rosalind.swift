@@ -145,6 +145,7 @@ public struct Rosalind: Rosalindable {
     private func artifactType(for artifact: FileSystemArtifact) throws -> Artifact.ArtifactType {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
+        case "strings": return .localization
         default:
             if artifact.isDirectory {
                 return .directory
