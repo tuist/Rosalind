@@ -25,6 +25,7 @@ let package = Package(
         // crypto capabilities need to be imported using a package.
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.12.3")),
         .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.30.0")),
+        .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.3.1")),
     ],
     targets: [
         .target(
@@ -38,12 +39,14 @@ let package = Package(
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
+                .define("MOCKING", .when(configuration: .debug)),
             ]
         ),
         .testTarget(
             name: "RosalindTests",
             dependencies: [
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "Mockable", package: "Mockable"),
                 "Rosalind",
             ]
         ),

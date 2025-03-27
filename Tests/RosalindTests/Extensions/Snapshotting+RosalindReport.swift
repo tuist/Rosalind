@@ -4,17 +4,17 @@ import SnapshotTesting
 import XCTest
 
 extension Diffing {
-    fileprivate static func rosalind() -> Diffing<RosalindReport> {
+    fileprivate static func rosalind() -> Diffing<AppBundleReport> {
         let jsonEncoder = JSONEncoder()
         let jsonDecoder = JSONDecoder()
         jsonEncoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 
-        return Diffing<RosalindReport>.init(toData: { value in
+        return Diffing<AppBundleReport>.init(toData: { value in
             try! jsonEncoder.encode(value)
         }, fromData: { data in
-            try! jsonDecoder.decode(RosalindReport.self, from: data)
-        }, diff: { (lhs: RosalindReport, rhs: RosalindReport) -> (String, [XCTAttachment])? in
-            if RosalindReport.structuralEqual(lhs: lhs, rhs: rhs) {
+            try! jsonDecoder.decode(AppBundleReport.self, from: data)
+        }, diff: { (lhs: AppBundleReport, rhs: AppBundleReport) -> (String, [XCTAttachment])? in
+            if lhs == rhs {
                 return nil
             } else {
                 return Snapshotting<String, String>.json.diffing.diff(
@@ -27,7 +27,7 @@ extension Diffing {
 }
 
 extension Snapshotting {
-    static func rosalind() -> Snapshotting<RosalindReport, RosalindReport> {
-        Snapshotting<RosalindReport, RosalindReport>.init(pathExtension: nil, diffing: .rosalind())
+    static func rosalind() -> Snapshotting<AppBundleReport, AppBundleReport> {
+        Snapshotting<AppBundleReport, AppBundleReport>.init(pathExtension: nil, diffing: .rosalind())
     }
 }

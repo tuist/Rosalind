@@ -2,8 +2,10 @@ import Command
 import Crypto
 @preconcurrency import FileSystem
 import Foundation
+import Mockable
 import Path
 
+@Mockable
 protocol ShasumCalculating: Sendable {
     func calculate(childrenShasums: [String]) async throws -> String
     func calculate(filePath: AbsolutePath) async throws -> String

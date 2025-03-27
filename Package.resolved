@@ -1,5 +1,5 @@
 {
-  "originHash" : "3520c62c315b8d1aeffce05499882aabaab50821b3236ce6cad0623216193f25",
+  "originHash" : "ea862ec2b3d5654762bd8a7bda51e8d0102a7402f4e7b54ac1de3d12400242e7",
   "pins" : [
     {
       "identity" : "command",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/FileSystem.git",
       "state" : {
-        "revision" : "1bfd79b9f27d7748b1bde4dc238ea1ca283fd44e",
-        "version" : "0.7.9"
+        "revision" : "a74971566c517dd4e7ff6895b11d4d44aee2c7e9",
+        "version" : "0.7.13"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kolos65/Mockable",
       "state" : {
-        "revision" : "203336d0ccb7ff03a8a03db54a4fa18fc2b0c771",
-        "version" : "0.3.0"
+        "revision" : "68f3ed6c4b62afab27a84425494cb61421a61ac1",
+        "version" : "0.3.1"
       }
     },
     {
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "a6ce32a18b81b04ce7e897d1d98df6eb2da04786",
-        "version" : "3.12.2"
+        "revision" : "e8d6eba1fef23ae5b359c46b03f7d94be2f41fed",
+        "version" : "3.12.3"
       }
     },
     {
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
       "state" : {
-        "revision" : "b2d4cb30735f4fbc3a01963a9c658336dd21e9ba",
-        "version" : "1.18.1"
+        "revision" : "1be8144023c367c5de701a6313ed29a3a10bf59b",
+        "version" : "1.18.3"
       }
     },
     {
