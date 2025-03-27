@@ -1,12 +1,12 @@
 import Command
 @preconcurrency import FileSystem
 import Foundation
-import Path
 import MachOKit
+import Path
 
 enum RosalindError: LocalizedError {
     case notFound(AbsolutePath)
-    
+
     var errorDescription: String? {
         switch self {
         case let .notFound(path):
@@ -16,20 +16,20 @@ enum RosalindError: LocalizedError {
 }
 
 public protocol Rosalindable: Sendable {
-    func analyze(path: AbsolutePath) async throws -> AppReport
+    func analyze(path: AbsolutePath) async throws -> AppBundleReport
 }
 
 enum FileSystemArtifact {
     case file(AbsolutePath)
     case directory(AbsolutePath)
-    
+
     var path: AbsolutePath {
         switch self {
         case let .file(path): return path
         case let .directory(path): return path
         }
     }
-    
+
     var isFile: Bool {
         switch self {
         case .file:
@@ -38,7 +38,7 @@ enum FileSystemArtifact {
             return false
         }
     }
-    
+
     var isDirectory: Bool {
         switch self {
         case .file:
@@ -56,12 +56,12 @@ public struct Rosalind: Rosalindable {
     private let fileSystem: FileSysteming
     private let commandRunner: CommandRunning
     private let shasumCalculator: ShasumCalculating
-    
+
     /// The default constructor of Rosalind.
     public init() {
         self.init(fileSystem: FileSystem(), commandRunner: CommandRunner(), shasumCalculator: ShasumCalculator())
     }
-    
+
     init(
         fileSystem: FileSysteming,
         commandRunner: CommandRunning,
@@ -71,12 +71,12 @@ public struct Rosalind: Rosalindable {
         self.commandRunner = commandRunner
         self.shasumCalculator = shasumCalculator
     }
-    
+
     /// Given the absolute path to an artifact that's result of a compilation, for example a .app bundle,
     /// Rosalind analyzes it and returns a report.
     /// - Parameter path: Absolute path to the artifact. If it doesn't exist, Rosalind throws.
     /// - Returns: A `RosalindReport` instance that captures the analysis.
-    public func analyze(path: AbsolutePath) async throws -> AppReport {
+    public func analyze(path: AbsolutePath) async throws -> AppBundleReport {
         guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
         return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             let appPath: AbsolutePath
@@ -107,20 +107,21 @@ public struct Rosalind: Rosalindable {
                 artifact: artifactPath,
                 baseArtifact: artifactPath
             )
-            
-            return AppReport(
-                bundleId: "",
-                name: appPath.basenameWithoutExt,
+            let appBundle = try await AppBundleLoader().load(appPath)
+
+            return AppBundleReport(
+                bundleId: appBundle.infoPlist.bundleId,
+                name: appBundle.infoPlist.name,
                 size: artifact.size,
-                platform: "",
-                appVersion: "",
+                platforms: appBundle.infoPlist.supportedPlatforms,
+                version: appBundle.infoPlist.version,
                 artifacts: artifact.children ?? []
             )
         }
     }
-    
-    private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact) async throws -> Artifact {
-        let children: [Artifact]? = if artifact.isDirectory {
+
+    private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact) async throws -> AppBundleArtifact {
+        let children: [AppBundleArtifact]? = if artifact.isDirectory {
             try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
                 .asyncMap {
                     try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
@@ -128,11 +129,11 @@ public struct Rosalind: Rosalindable {
         } else {
             nil
         }
-        
+
         let size = try await size(artifact: artifact, children: children ?? [])
         let shasum = try await shasum(artifact: artifact, children: children ?? [])
         let artifactType = try artifactType(for: artifact)
-        return Artifact(
+        return AppBundleArtifact(
             artifactType: artifactType,
             path: try RelativePath(validating: baseArtifact.path.basename)
                 .appending(artifact.path.relative(to: baseArtifact.path)).pathString,
@@ -141,21 +142,21 @@ public struct Rosalind: Rosalindable {
             children: children
         )
     }
-    
-    private func artifactType(for artifact: FileSystemArtifact) throws -> Artifact.ArtifactType {
+
+    private func artifactType(for artifact: FileSystemArtifact) throws -> AppBundleArtifact.ArtifactType {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
-        case "strings": return .localization
+        case "strings", "xcstrings": return .localization
         default:
             if artifact.isDirectory {
                 return .directory
             } else {
                 let fileURL = URL(fileURLWithPath: artifact.path.pathString)
                 let fileHandle = try FileHandle(forReadingFrom: fileURL)
-                
-                if
-                    let magicRaw: UInt32 = fileHandle.read(offset: 0),
-                    let magic = Magic(rawValue: magicRaw) {
+
+                if let magicRaw: UInt32 = fileHandle.read(offset: 0),
+                   let magic = Magic(rawValue: magicRaw)
+                {
                     return .binary
                 } else {
                     return .file
@@ -163,20 +164,20 @@ public struct Rosalind: Rosalindable {
             }
         }
     }
-    
-    private func shasum(artifact: FileSystemArtifact, children: [Artifact]) async throws -> String {
+
+    private func shasum(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws -> String {
         if artifact.isDirectory {
             return try await shasumCalculator.calculate(childrenShasums: children.map(\.shasum).sorted())
         } else {
             return try await shasumCalculator.calculate(filePath: artifact.path)
         }
     }
-    
+
     private func pathToArtifact(_ path: AbsolutePath) async throws -> FileSystemArtifact {
         (try await fileSystem.exists(path, isDirectory: true)) ? .directory(path) : .file(path)
     }
-    
-    private func size(artifact: FileSystemArtifact, children: [Artifact]) async throws -> Int {
+
+    private func size(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws -> Int {
         if artifact.isDirectory {
             return children.map(\.size).reduce(0, +)
         } else {
@@ -202,4 +203,3 @@ extension FileHandle {
         }
     }
 }
-
