@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.26] - 2025-03-30
+### Details
+#### Chore
+- Update dependency esbuild to v0.25.2 by @renovate[bot] in [#94](https://github.com/tuist/Rosalind/pull/94)
+- Update dependency pnpm to v10.7.0 by @renovate[bot] in [#92](https://github.com/tuist/Rosalind/pull/92)
+
 ## [0.2.25] - 2025-03-26
 ### Details
 #### Chore
@@ -60,8 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist/command to from: "0.9.32" by @renovate[bot]
 - Update dependency wrangler to v3.80.3 by @renovate[bot]
 
-## New Contributors
-* @fortmarek made their first contribution
 ## [0.2.24] - 2024-08-28
 ### Details
 #### Chore
@@ -194,6 +198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.2.26]: https://github.com/tuist/Rosalind/compare/0.2.25..0.2.26
 [0.2.25]: https://github.com/tuist/Rosalind/compare/0.2.24..0.2.25
 [0.2.24]: https://github.com/tuist/Rosalind/compare/0.2.23..0.2.24
 [0.2.23]: https://github.com/tuist/Rosalind/compare/0.2.22..0.2.23
