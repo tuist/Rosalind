@@ -1,6 +1,6 @@
 [tools]
 "git-cliff" = "2.4.0"
-"pnpm" = "10.7.1"
+"pnpm" = "10.8.0"
 "nodejs" = "22.14.0"
 "swiftlint" = "0.54.0"
 "swiftformat" = "0.52.10"
