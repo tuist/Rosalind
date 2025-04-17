@@ -24,6 +24,7 @@ let package = Package(
         // To our surprise (note the irony), CryptoSwift is an AppleOS-only framework, therefore
         // crypto capabilities need to be imported using a package.
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.12.3")),
+        .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.30.0")),
     ],
     targets: [
         .target(
@@ -33,6 +34,7 @@ let package = Package(
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
                 .product(name: "Command", package: "Command"),
+                .product(name: "MachOKit", package: "MachOKit"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
