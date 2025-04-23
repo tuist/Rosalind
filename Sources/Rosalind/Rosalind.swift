@@ -175,6 +175,7 @@ public struct Rosalind: Rosalindable {
             } else {
                 let fileURL = URL(fileURLWithPath: artifact.path.pathString)
                 let fileHandle = try FileHandle(forReadingFrom: fileURL)
+                defer { try? fileHandle.close() }
 
                 if let magicRaw: UInt32 = fileHandle.read(offset: 0),
                    Magic(rawValue: magicRaw) != nil
