@@ -4,8 +4,12 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
     public let bundleId: String
     /// The app name
     public let name: String
-    /// The app size in bytes
-    public let size: Int
+    /// The app install size in bytes. This is the size of the `.app` bundle and represents the value that will be installed on
+    /// the device.
+    public let installSize: Int
+    /// The app download size in bytes. Only available for `.ipa`. It represents the compressed size that the users will end up
+    /// downloading over the network.
+    public let downloadSize: Int?
     /// List of supported platforms, such as `iPhoneSimulator`. List of possible values is the same as for
     /// `CFBundleSupportedPlatforms`.
     public let platforms: [String]
@@ -17,14 +21,16 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
     public init(
         bundleId: String,
         name: String,
-        size: Int,
+        installSize: Int,
+        downloadSize: Int?,
         platforms: [String],
         version: String,
         artifacts: [AppBundleArtifact]
     ) {
         self.bundleId = bundleId
         self.name = name
-        self.size = size
+        self.installSize = installSize
+        self.downloadSize = downloadSize
         self.platforms = platforms
         self.version = version
         self.artifacts = artifacts

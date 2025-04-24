@@ -97,10 +97,19 @@ public struct Rosalind: Rosalindable {
             )
             let appBundle = try await appBundleLoader.load(appBundlePath)
 
+            let downloadSize: Int?
+            switch path.extension {
+            case "ipa":
+                downloadSize = try fileSize(at: path)
+            default:
+                downloadSize = nil
+            }
+
             return AppBundleReport(
                 bundleId: appBundle.infoPlist.bundleId,
                 name: appBundle.infoPlist.name,
-                size: artifact.size,
+                installSize: artifact.size,
+                downloadSize: downloadSize,
                 platforms: appBundle.infoPlist.supportedPlatforms,
                 version: appBundle.infoPlist.version,
                 artifacts: artifact.children ?? []
@@ -204,7 +213,11 @@ public struct Rosalind: Rosalindable {
         if artifact.isDirectory {
             return children.map(\.size).reduce(0, +)
         } else {
-            return ((try FileManager.default.attributesOfItem(atPath: artifact.path.pathString))[.size] as? Int) ?? 0
+            return try fileSize(at: artifact.path)
         }
+    }
+
+    private func fileSize(at path: AbsolutePath) throws -> Int {
+        ((try FileManager.default.attributesOfItem(atPath: path.pathString))[.size] as? Int) ?? 0
     }
 }

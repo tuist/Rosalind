@@ -66,7 +66,8 @@ struct RosalindTests {
                 got == AppBundleReport(
                     bundleId: "com.App",
                     name: "App",
-                    size: 21,
+                    installSize: 21,
+                    downloadSize: nil,
                     platforms: ["iPhoneOS"],
                     version: "1.0",
                     artifacts: [
