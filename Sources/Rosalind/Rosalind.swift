@@ -169,8 +169,8 @@ public struct Rosalind: Rosalindable {
 
                 return AppBundleArtifact(
                     artifactType: .asset,
-                    path: try RelativePath(validating: renditionName)
-                        .appending(artifact.path.relative(to: baseArtifact.path)).pathString,
+                    path: try RelativePath(validating: baseArtifact.path.basename)
+                        .appending(artifact.path.appending(component: renditionName).relative(to: baseArtifact.path)).pathString,
                     size: sizeOnDisk,
                     shasum: sha1Digest.lowercased(),
                     children: nil
