@@ -62,24 +62,28 @@ public struct Rosalind: Rosalindable {
     private let fileSystem: FileSysteming
     private let appBundleLoader: AppBundleLoading
     private let shasumCalculator: ShasumCalculating
+    private let assetUtilController: AssetUtilControlling
 
     /// The default constructor of Rosalind.
     public init() {
         self.init(
             fileSystem: FileSystem(),
             appBundleLoader: AppBundleLoader(),
-            shasumCalculator: ShasumCalculator()
+            shasumCalculator: ShasumCalculator(),
+            assetUtilController: AssetUtilController()
         )
     }
 
     init(
         fileSystem: FileSysteming,
         appBundleLoader: AppBundleLoading,
-        shasumCalculator: ShasumCalculating
+        shasumCalculator: ShasumCalculating,
+        assetUtilController: AssetUtilControlling
     ) {
         self.fileSystem = fileSystem
         self.appBundleLoader = appBundleLoader
         self.shasumCalculator = shasumCalculator
+        self.assetUtilController = assetUtilController
     }
 
     /// Given the absolute path to an artifact that's result of a compilation, for example a .app bundle,
@@ -152,18 +156,37 @@ public struct Rosalind: Rosalindable {
     }
 
     private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact) async throws -> AppBundleArtifact {
-        let children: [AppBundleArtifact]? = if artifact.isDirectory {
-            try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
+        let children: [AppBundleArtifact]?
+        let artifactType = try artifactType(for: artifact)
+        switch artifactType {
+        case .asset:
+            let infos = try await assetUtilController.info(at: artifact.path)
+            children = try infos.compactMap { info -> AppBundleArtifact? in
+                guard let sizeOnDisk = info.sizeOnDisk,
+                      let sha1Digest = info.sha1Digest,
+                      let renditionName = info.renditionName
+                else { return nil }
+
+                return AppBundleArtifact(
+                    artifactType: .asset,
+                    path: try RelativePath(validating: renditionName)
+                        .appending(artifact.path.relative(to: baseArtifact.path)).pathString,
+                    size: sizeOnDisk,
+                    shasum: sha1Digest.lowercased(),
+                    children: nil
+                )
+            }
+        case .directory:
+            children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
                 .asyncMap {
                     try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
                 }
-        } else {
-            nil
+        case .file, .binary, .localization, .font:
+            children = nil
         }
 
         let size = try await size(artifact: artifact, children: children ?? [])
         let shasum = try await shasum(artifact: artifact, children: children ?? [])
-        let artifactType = try artifactType(for: artifact)
         return AppBundleArtifact(
             artifactType: artifactType,
             path: try RelativePath(validating: baseArtifact.path.basename)
@@ -178,6 +201,7 @@ public struct Rosalind: Rosalindable {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
         case "strings", "xcstrings": return .localization
+        case "car": return .asset
         default:
             if artifact.isDirectory {
                 return .directory
