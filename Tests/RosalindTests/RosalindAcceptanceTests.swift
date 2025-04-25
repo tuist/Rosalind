@@ -10,53 +10,56 @@ struct RosalindAcceptanceTests {
     private let fileSystem = FileSystem()
     private let subject = Rosalind()
 
-    @Test func ios_app() async throws {
-        try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
-            // When
-            let got = try await subject
-                .analyzeAppBundle(
-                    at: fixtureDirectory.appending(component: "App.app")
+    // We run `assetutils` as part of these acceptance tests, so these won't run on Linux
+    #if os(macOS)
+        @Test func ios_app() async throws {
+            try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
+                // When
+                let got = try await subject
+                    .analyzeAppBundle(
+                        at: fixtureDirectory.appending(component: "App.app")
+                    )
+
+                // Then
+                assertSnapshot(
+                    of: got,
+                    as: .rosalind()
                 )
-
-            // Then
-            assertSnapshot(
-                of: got,
-                as: .rosalind()
-            )
+            }
         }
-    }
 
-    @Test func ios_app_xcarchive() async throws {
-        try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
-            // When
-            let got = try await subject
-                .analyzeAppBundle(
-                    at: fixtureDirectory.appending(component: "App.xcarchive")
+        @Test func ios_app_xcarchive() async throws {
+            try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
+                // When
+                let got = try await subject
+                    .analyzeAppBundle(
+                        at: fixtureDirectory.appending(component: "App.xcarchive")
+                    )
+
+                // Then
+                assertSnapshot(
+                    of: got,
+                    as: .rosalind()
                 )
-
-            // Then
-            assertSnapshot(
-                of: got,
-                as: .rosalind()
-            )
+            }
         }
-    }
 
-    @Test func ios_app_ipa() async throws {
-        try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
-            // When
-            let got = try await subject
-                .analyzeAppBundle(
-                    at: fixtureDirectory.appending(component: "App.ipa")
+        @Test func ios_app_ipa() async throws {
+            try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
+                // When
+                let got = try await subject
+                    .analyzeAppBundle(
+                        at: fixtureDirectory.appending(component: "App.ipa")
+                    )
+
+                // Then
+                assertSnapshot(
+                    of: got,
+                    as: .rosalind()
                 )
-
-            // Then
-            assertSnapshot(
-                of: got,
-                as: .rosalind()
-            )
+            }
         }
-    }
+    #endif
 
     private func withFixtureInTemporaryDirectory(
         _ fixturePath: String,

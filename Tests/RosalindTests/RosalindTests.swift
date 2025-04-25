@@ -9,6 +9,7 @@ struct RosalindTests {
     private let fileSystem = FileSystem()
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
+    private let assetUtilController = MockAssetUtilControlling()
     private let subject: Rosalind
 
     init() {
@@ -21,7 +22,8 @@ struct RosalindTests {
         subject = Rosalind(
             fileSystem: fileSystem,
             appBundleLoader: appBundleLoader,
-            shasumCalculator: shasumCalculator
+            shasumCalculator: shasumCalculator,
+            assetUtilController: assetUtilController
         )
     }
 

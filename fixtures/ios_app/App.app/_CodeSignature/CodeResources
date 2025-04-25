@@ -4,6 +4,10 @@
 <dict>
 	<key>files</key>
 	<dict>
+		<key>App.debug.dylib</key>
+		<data>
+		rdJBFzW0lAeZ6Hi1SPCjWMgKZfg=
+		</data>
 		<key>Assets.car</key>
 		<data>
 		y4yCYzPATMC06C4hf7A3KewSVi4=
@@ -16,6 +20,10 @@
 		<data>
 		n57qDP4tZfLD1rCS43W0B4LQjzE=
 		</data>
+		<key>__preview.dylib</key>
+		<data>
+		6n4QPxM7TZU9hogf/4x6nQGUYaY=
+		</data>
 		<key>embedded.mobileprovision</key>
 		<data>
 		/wTiKJtdECfEQyPKNmCqg415FBc=
@@ -23,11 +31,25 @@
 	</dict>
 	<key>files2</key>
 	<dict>
+		<key>App.debug.dylib</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			Wh9+TnzpHCOgJNh3bpXobArXHUjfjP8jkiD3WJ+J1J0=
+			</data>
+		</dict>
 		<key>Assets.car</key>
 		<dict>
 			<key>hash2</key>
 			<data>
 			m6tiVvKEK74eVRFuPclaW+fIy/Z56p1ZPIce47qX1Ss=
+			</data>
+		</dict>
+		<key>__preview.dylib</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			iqPxDVKwWWtd4maLPTYgN47EGxpRz3Mv5gaV3LueLC8=
 			</data>
 		</dict>
 		<key>embedded.mobileprovision</key>

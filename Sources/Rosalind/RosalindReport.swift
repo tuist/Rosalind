@@ -49,6 +49,8 @@ public struct AppBundleArtifact: Sendable, Codable, Equatable {
         case binary
         /// A localization file is any file that has one of the following extensions: `.strings` or `.xcstrings`.
         case localization
+        /// An asset – either a `.car` file or a file inside the `.car` obtained using the `assetutils`.
+        case asset
     }
 
     /// The type of the artifact, such as `.font`.
