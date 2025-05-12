@@ -2,7 +2,7 @@
   "name": "@tuist/rosalind",
   "devDependencies": {
     "vitepress": "^1.3.2",
-    "wrangler": "^3.70.0",
+    "wrangler": "^4.0.0",
     "esbuild": "0.25.4",
     "cookie": ">=0.7.0"
   },
