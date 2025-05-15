@@ -1,7 +1,5 @@
 # Rosalind
 
-# Rosalind
-
 [Rosalind Franklin](https://en.wikipedia.org/wiki/Rosalind_Franklin) was a pioneering scientist whose X-ray crystallography work revealed the fundamental structure of DNA, transforming our understanding of life itself. In a similar way, modern applications across platforms—iOS, Android, and React Native—have complex internal architectures that, when properly understood, can be optimized for performance, efficiency, and user experience.
 
 Our tool, Rosalind, analyzes application bundles to uncover these hidden structures, providing developers with clear, actionable insights about their code, dependencies, resources, and overall composition. By making the invisible visible, Rosalind empowers development teams to make informed decisions when refining their applications.
