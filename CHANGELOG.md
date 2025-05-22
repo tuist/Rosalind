@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.21] - 2025-05-22
+### Details
+#### Chore
+- Update node.js to v22.16.0 by @renovate[bot] in [#135](https://github.com/tuist/Rosalind/pull/135)
+
 ## [0.5.20] - 2025-05-21
 ### Details
 #### Chore
@@ -403,6 +408,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.5.21]: https://github.com/tuist/Rosalind/compare/0.5.20..0.5.21
 [0.5.20]: https://github.com/tuist/Rosalind/compare/0.5.19..0.5.20
 [0.5.19]: https://github.com/tuist/Rosalind/compare/0.5.18..0.5.19
 [0.5.18]: https://github.com/tuist/Rosalind/compare/0.5.17..0.5.18
