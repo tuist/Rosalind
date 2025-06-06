@@ -302,7 +302,8 @@ public struct Rosalind: Rosalindable {
             return .localization
         case "car":
             print("Identified as asset catalog")
-            return .asset
+            return .file
+        // return .asset
         default:
             if artifact.isDirectory {
                 print("Identified as directory")
