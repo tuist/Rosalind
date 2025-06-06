@@ -16,8 +16,7 @@ enum RosalindError: LocalizedError, Equatable {
         case let .appNotFound(path):
             return "No app found at \(path). Make sure the passed app bundle is valid."
         case let .notSupported(path):
-            return
-                "The app bundle \(path) is not supported. Only `.xcarchive`, `.ipa`, and `.app` bundles are supported."
+            return "The app bundle \(path) is not supported. Only `.xcarchive`, `.ipa`, and `.app` bundles are supported."
         }
     }
 }
@@ -93,11 +92,8 @@ public struct Rosalind: Rosalindable {
     /// - Returns: A `RosalindReport` instance that captures the analysis.
     public func analyzeAppBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
-        return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) {
-            temporaryDirectory in
-            let appBundlePath = try await appBundlePath(
-                path, temporaryDirectory: temporaryDirectory
-            )
+        return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            let appBundlePath = try await appBundlePath(path, temporaryDirectory: temporaryDirectory)
             let artifactPath = try await pathToArtifact(appBundlePath)
             let artifact = try await traverse(
                 artifact: artifactPath,
@@ -136,8 +132,7 @@ public struct Rosalind: Rosalindable {
                 include: ["*.app"]
             )
             .collect()
-            .first
-            else {
+            .first else {
                 throw RosalindError.appNotFound(path)
             }
             return appPath
@@ -149,8 +144,7 @@ public struct Rosalind: Rosalindable {
                 include: ["*.app"]
             )
             .collect()
-            .first
-            else {
+            .first else {
                 throw RosalindError.appNotFound(path)
             }
             return appPath
@@ -161,47 +155,29 @@ public struct Rosalind: Rosalindable {
         }
     }
 
-    private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact)
-        async throws -> AppBundleArtifact
-    {
+    private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact) async throws -> AppBundleArtifact {
         let children: [AppBundleArtifact]?
         let artifactType = try artifactType(for: artifact)
         switch artifactType {
         case .asset:
-            print("Getting asset info for \(artifact.path)")
             let infos = try await assetUtilController.info(at: artifact.path)
-            print("Got infos for \(artifact.path): \(infos)")
             children = try infos.compactMap { info -> AppBundleArtifact? in
-                print("Parsing info \(info)")
                 guard let sizeOnDisk = info.sizeOnDisk,
                       let sha1Digest = info.sha1Digest,
                       let renditionName = info.renditionName
                 else { return nil }
 
-                let path = try RelativePath(validating: baseArtifact.path.basename)
-                    .appending(
-                        artifact.path.appending(component: renditionName).relative(
-                            to: baseArtifact.path
-                        )
-                    ).pathString
-
-                let shasum = sha1Digest.lowercased()
-
-                print("Finished parsing asset info \(info)")
-
                 return AppBundleArtifact(
                     artifactType: .asset,
-                    path: path,
+                    path: try RelativePath(validating: baseArtifact.path.basename)
+                        .appending(artifact.path.appending(component: renditionName).relative(to: baseArtifact.path)).pathString,
                     size: sizeOnDisk,
-                    shasum: shasum,
+                    shasum: sha1Digest.lowercased(),
                     children: nil
                 )
             }
-
-            print("Finished getting asset info for \(artifact.path)")
         case .directory:
-            children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect()
-                .sorted()
+            children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
                 .asyncMap {
                     try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
                 }
@@ -221,9 +197,7 @@ public struct Rosalind: Rosalindable {
         )
     }
 
-    private func artifactType(for artifact: FileSystemArtifact) throws
-        -> AppBundleArtifact.ArtifactType
-    {
+    private func artifactType(for artifact: FileSystemArtifact) throws -> AppBundleArtifact.ArtifactType {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
         case "strings", "xcstrings": return .localization
@@ -247,13 +221,9 @@ public struct Rosalind: Rosalindable {
         }
     }
 
-    private func shasum(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws
-        -> String
-    {
+    private func shasum(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws -> String {
         if artifact.isDirectory {
-            return try await shasumCalculator.calculate(
-                childrenShasums: children.map(\.shasum).sorted()
-            )
+            return try await shasumCalculator.calculate(childrenShasums: children.map(\.shasum).sorted())
         } else {
             return try await shasumCalculator.calculate(filePath: artifact.path)
         }
@@ -263,9 +233,7 @@ public struct Rosalind: Rosalindable {
         (try await fileSystem.exists(path, isDirectory: true)) ? .directory(path) : .file(path)
     }
 
-    private func size(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws
-        -> Int
-    {
+    private func size(artifact: FileSystemArtifact, children: [AppBundleArtifact]) async throws -> Int {
         if artifact.isDirectory {
             return children.map(\.size).reduce(0, +)
         } else {

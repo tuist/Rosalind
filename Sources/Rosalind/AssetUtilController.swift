@@ -54,8 +54,6 @@ struct AssetUtilController: AssetUtilControlling {
     }
 
     func info(at path: AbsolutePath) async throws -> [AssetInfo] {
-        print("AssetUtilController: Queuing assetutil command for: \(path.pathString)")
-
         await Self.poolLock.acquire()
 
         guard let data = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
