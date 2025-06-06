@@ -33,6 +33,19 @@ protocol AssetUtilControlling: Sendable {
 }
 
 struct AssetUtilController: AssetUtilControlling {
+    @TaskLocal static var poolLock: PoolLock = .init(capacity: 5)
+
+    static func acquiringPoolLock(_ closure: () async throws -> Void) async throws {
+        await poolLock.acquire()
+        do {
+            try await closure()
+        } catch {
+            await poolLock.release()
+            throw error
+        }
+        await poolLock.release()
+    }
+
     private let commandRunner: CommandRunning
     private let jsonDecoder = JSONDecoder()
 
@@ -41,6 +54,8 @@ struct AssetUtilController: AssetUtilControlling {
     }
 
     func info(at path: AbsolutePath) async throws -> [AssetInfo] {
+        await Self.poolLock.acquire()
+
         guard let data = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
             .concatenatedString()
             .data(using: .utf8)
@@ -48,6 +63,9 @@ struct AssetUtilController: AssetUtilControlling {
             throw AssetUtilControllerError.parsingFailed(path)
         }
 
-        return try jsonDecoder.decode([AssetInfo].self, from: data)
+        await Self.poolLock.release()
+
+        let result = try jsonDecoder.decode([AssetInfo].self, from: data)
+        return result
     }
 }

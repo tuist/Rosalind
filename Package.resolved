@@ -1,5 +1,5 @@
 {
-  "originHash" : "da51f0ba7aaad5af40c6980939ca98e9ea88b7c00c86f39b0c15ec7a0c90df3e",
+  "originHash" : "7e4346c49daa5ff320f630ff3b939c81a0d9050622e29cbb5ab3ae7f0ce6c97c",
   "pins" : [
     {
       "identity" : "command",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/FileSystem.git",
       "state" : {
-        "revision" : "0bb391ac255489bfc31f36f6d9f6b130db4e242e",
-        "version" : "0.8.0"
+        "revision" : "95ae649dd2f2800ebcdf0dfca92233d59f87787b",
+        "version" : "0.10.2"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/MachOKit",
       "state" : {
-        "revision" : "b4b752d9d2cf3975ee05620c66284a3414fcf56e",
-        "version" : "0.32.0"
+        "revision" : "753461938fafdcdbcd19b68b34b137dc37367d22",
+        "version" : "0.34.0"
       }
     },
     {
@@ -123,8 +123,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-snapshot-testing",
       "state" : {
-        "revision" : "1be8144023c367c5de701a6313ed29a3a10bf59b",
-        "version" : "1.18.3"
+        "revision" : "37230a37e83f1b7023be08e1b1a2603fcb1567fb",
+        "version" : "1.18.4"
       }
     },
     {
