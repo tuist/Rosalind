@@ -33,7 +33,7 @@ protocol AssetUtilControlling: Sendable {
 }
 
 struct AssetUtilController: AssetUtilControlling {
-    @TaskLocal static var poolLock: PoolLock = .init(capacity: 5)
+    @TaskLocal static var poolLock: PoolLock = .init(capacity: 10)
 
     static func acquiringPoolLock(_ closure: () async throws -> Void) async throws {
         await poolLock.acquire()
