@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.31] - 2025-06-06
+### Details
+#### Fix
+- Parsing assets being stuck on CI by @fortmarek in [#145](https://github.com/tuist/Rosalind/pull/145)
+
 ## [0.5.30] - 2025-06-05
 ### Details
 #### Chore
@@ -453,6 +458,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.5.31]: https://github.com/tuist/Rosalind/compare/0.5.30..0.5.31
 [0.5.30]: https://github.com/tuist/Rosalind/compare/0.5.29..0.5.30
 [0.5.29]: https://github.com/tuist/Rosalind/compare/0.5.28..0.5.29
 [0.5.28]: https://github.com/tuist/Rosalind/compare/0.5.27..0.5.28
