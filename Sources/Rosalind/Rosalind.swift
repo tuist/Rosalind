@@ -169,25 +169,36 @@ public struct Rosalind: Rosalindable {
         let artifactType = try artifactType(for: artifact)
         switch artifactType {
         case .asset:
+            print("Getting asset info for \(artifact.path)")
             let infos = try await assetUtilController.info(at: artifact.path)
+            print("Got infos for \(artifact.path): \(infos)")
             children = try infos.compactMap { info -> AppBundleArtifact? in
+                print("Parsing info \(info)")
                 guard let sizeOnDisk = info.sizeOnDisk,
                     let sha1Digest = info.sha1Digest,
                     let renditionName = info.renditionName
                 else { return nil }
 
+                let path = try RelativePath(validating: baseArtifact.path.basename)
+                    .appending(
+                        artifact.path.appending(component: renditionName).relative(
+                            to: baseArtifact.path)
+                    ).pathString
+
+                let shasum = sha1Digest.lowercased()
+
+                print("Finished parsing asset info \(info)")
+
                 return AppBundleArtifact(
                     artifactType: .asset,
-                    path: try RelativePath(validating: baseArtifact.path.basename)
-                        .appending(
-                            artifact.path.appending(component: renditionName).relative(
-                                to: baseArtifact.path)
-                        ).pathString,
+                    path: path,
                     size: sizeOnDisk,
-                    shasum: sha1Digest.lowercased(),
+                    shasum: shasum,
                     children: nil
                 )
             }
+
+            print("Finished getting asset info for \(artifact.path)")
         case .directory:
             children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect()
                 .sorted()
@@ -216,7 +227,7 @@ public struct Rosalind: Rosalindable {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
         case "strings", "xcstrings": return .localization
-        // case "car": return .asset
+        case "car": return .asset
         default:
             if artifact.isDirectory {
                 return .directory
