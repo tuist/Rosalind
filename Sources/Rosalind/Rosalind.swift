@@ -96,7 +96,8 @@ public struct Rosalind: Rosalindable {
         return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) {
             temporaryDirectory in
             let appBundlePath = try await appBundlePath(
-                path, temporaryDirectory: temporaryDirectory)
+                path, temporaryDirectory: temporaryDirectory
+            )
             let artifactPath = try await pathToArtifact(appBundlePath)
             let artifact = try await traverse(
                 artifact: artifactPath,
@@ -130,13 +131,12 @@ public struct Rosalind: Rosalindable {
     ) async throws -> AbsolutePath {
         switch path.extension {
         case "xcarchive":
-            guard
-                let appPath = try await fileSystem.glob(
-                    directory: path.appending(components: "Products", "Applications"),
-                    include: ["*.app"]
-                )
-                .collect()
-                .first
+            guard let appPath = try await fileSystem.glob(
+                directory: path.appending(components: "Products", "Applications"),
+                include: ["*.app"]
+            )
+            .collect()
+            .first
             else {
                 throw RosalindError.appNotFound(path)
             }
@@ -144,13 +144,12 @@ public struct Rosalind: Rosalindable {
         case "ipa":
             let unzippedPath = temporaryDirectory.appending(component: "App")
             try await fileSystem.unzip(path, to: unzippedPath)
-            guard
-                let appPath = try await fileSystem.glob(
-                    directory: unzippedPath.appending(component: "Payload"),
-                    include: ["*.app"]
-                )
-                .collect()
-                .first
+            guard let appPath = try await fileSystem.glob(
+                directory: unzippedPath.appending(component: "Payload"),
+                include: ["*.app"]
+            )
+            .collect()
+            .first
             else {
                 throw RosalindError.appNotFound(path)
             }
@@ -175,14 +174,15 @@ public struct Rosalind: Rosalindable {
             children = try infos.compactMap { info -> AppBundleArtifact? in
                 print("Parsing info \(info)")
                 guard let sizeOnDisk = info.sizeOnDisk,
-                    let sha1Digest = info.sha1Digest,
-                    let renditionName = info.renditionName
+                      let sha1Digest = info.sha1Digest,
+                      let renditionName = info.renditionName
                 else { return nil }
 
                 let path = try RelativePath(validating: baseArtifact.path.basename)
                     .appending(
                         artifact.path.appending(component: renditionName).relative(
-                            to: baseArtifact.path)
+                            to: baseArtifact.path
+                        )
                     ).pathString
 
                 let shasum = sha1Digest.lowercased()
@@ -237,7 +237,7 @@ public struct Rosalind: Rosalindable {
                 defer { try? fileHandle.close() }
 
                 if let magicRaw: UInt32 = fileHandle.read(offset: 0),
-                    Magic(rawValue: magicRaw) != nil
+                   Magic(rawValue: magicRaw) != nil
                 {
                     return .binary
                 } else {
@@ -252,7 +252,8 @@ public struct Rosalind: Rosalindable {
     {
         if artifact.isDirectory {
             return try await shasumCalculator.calculate(
-                childrenShasums: children.map(\.shasum).sorted())
+                childrenShasums: children.map(\.shasum).sorted()
+            )
         } else {
             return try await shasumCalculator.calculate(filePath: artifact.path)
         }

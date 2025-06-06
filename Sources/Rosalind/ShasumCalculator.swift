@@ -15,8 +15,7 @@ struct ShasumCalculator: ShasumCalculating {
     private let fileSystem: FileSysteming
     private let commandRunner: CommandRunning
 
-    init(fileSystem: FileSysteming = FileSystem(), commandRunner: CommandRunning = CommandRunner())
-    {
+    init(fileSystem: FileSysteming = FileSystem(), commandRunner: CommandRunning = CommandRunner()) {
         self.fileSystem = fileSystem
         self.commandRunner = commandRunner
     }
