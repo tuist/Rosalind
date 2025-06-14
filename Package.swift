@@ -24,7 +24,7 @@ let package = Package(
         // To our surprise (note the irony), CryptoSwift is an AppleOS-only framework, therefore
         // crypto capabilities need to be imported using a package.
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.12.3")),
-        .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.35.0")),
+        .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.35.1")),
         .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.4.0")),
     ],
     targets: [
