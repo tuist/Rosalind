@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.86] - 2025-08-06
+### Details
+#### Chore
+- Update dependency apple/swift-crypto to from: "3.14.0" by @renovate[bot] in [#201](https://github.com/tuist/Rosalind/pull/201)
+
 ## [0.5.85] - 2025-08-05
 ### Details
 #### Chore
@@ -728,6 +733,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.5.86]: https://github.com/tuist/Rosalind/compare/0.5.85..0.5.86
 [0.5.85]: https://github.com/tuist/Rosalind/compare/0.5.84..0.5.85
 [0.5.84]: https://github.com/tuist/Rosalind/compare/0.5.83..0.5.84
 [0.5.83]: https://github.com/tuist/Rosalind/compare/0.5.82..0.5.83
