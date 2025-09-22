@@ -275,3 +275,4 @@ docs/.vitepress/cache
 
 .swiftpm/**/*.xcworkspace/
 .swiftpm/**/*.xcodeproj/
+.claude
