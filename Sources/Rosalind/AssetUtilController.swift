@@ -5,11 +5,18 @@ import Path
 
 enum AssetUtilControllerError: LocalizedError {
     case parsingFailed(AbsolutePath)
+    case decodingFailed(path: AbsolutePath, jsonString: String, underlyingError: Error)
 
     var errorDescription: String? {
         switch self {
         case let .parsingFailed(path):
             return "Parsing of \(path.pathString) failed. Make sure the file is valid."
+        case let .decodingFailed(path: path, jsonString: jsonString, underlyingError: error):
+            return """
+            Failed to decode asset info from \(path.pathString).
+            Underlying error: \(error.localizedDescription)
+            JSON excerpt: \(String(jsonString.prefix(200)))...
+            """
         }
     }
 }
@@ -56,16 +63,32 @@ struct AssetUtilController: AssetUtilControlling {
     func info(at path: AbsolutePath) async throws -> [AssetInfo] {
         await Self.poolLock.acquire()
 
-        guard let data = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
+        let output = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
             .concatenatedString()
-            .data(using: .utf8)
-        else {
-            throw AssetUtilControllerError.parsingFailed(path)
-        }
 
         await Self.poolLock.release()
 
-        let result = try jsonDecoder.decode([AssetInfo].self, from: data)
-        return result
+        // Extract JSON part by finding the first '[' or '{' character
+        // assetutil sometimes outputs warnings before the JSON
+        guard let jsonStartIndex = output.firstIndex(of: "[") ?? output.firstIndex(of: "{") else {
+            throw AssetUtilControllerError.parsingFailed(path)
+        }
+
+        let jsonString = String(output[jsonStartIndex...])
+
+        guard let data = jsonString.data(using: .utf8) else {
+            throw AssetUtilControllerError.parsingFailed(path)
+        }
+
+        do {
+            let result = try jsonDecoder.decode([AssetInfo].self, from: data)
+            return result
+        } catch {
+            throw AssetUtilControllerError.decodingFailed(
+                path: path,
+                jsonString: jsonString,
+                underlyingError: error
+            )
+        }
     }
 }
