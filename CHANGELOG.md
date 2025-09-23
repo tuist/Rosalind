@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.109] - 2025-09-23
+### Details
+#### Test
+- Add comprehensive tests for AssetUtilController by @fortmarek in [#233](https://github.com/tuist/Rosalind/pull/233)
+
 ## [0.5.108] - 2025-08-25
 ### Details
 #### Chore
@@ -843,6 +848,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.5.109]: https://github.com/tuist/Rosalind/compare/0.5.108..0.5.109
 [0.5.108]: https://github.com/tuist/Rosalind/compare/0.5.107..0.5.108
 [0.5.107]: https://github.com/tuist/Rosalind/compare/0.5.106..0.5.107
 [0.5.106]: https://github.com/tuist/Rosalind/compare/0.5.105..0.5.106
