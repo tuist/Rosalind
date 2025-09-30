@@ -66,7 +66,7 @@ jobs:
         run: git cliff --bump -o CHANGELOG.md
       - name: Commit changes
         id: auto-commit-action
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         if: env.should-release == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.TUIST_FILE_SYSTEM_RELEASE_TOKEN }}
