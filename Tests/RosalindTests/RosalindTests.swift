@@ -68,6 +68,7 @@ struct RosalindTests {
                 got == AppBundleReport(
                     bundleId: "com.App",
                     name: "App",
+                    type: .app,
                     installSize: 21,
                     downloadSize: nil,
                     platforms: ["iPhoneOS"],
@@ -141,6 +142,127 @@ struct RosalindTests {
             ) {
                 try await subject.analyzeAppBundle(at: apkPath)
             }
+        }
+    }
+
+    @Test func xcarchiveBundle() async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            // Given
+            let xcarchivePath = temporaryDirectory.appending(component: "App.xcarchive")
+            let appBundlePath = xcarchivePath.appending(components: "Products", "Applications", "App.app")
+            try await fileSystem.makeDirectory(at: appBundlePath)
+            try await fileSystem.writeText("binary-content", at: appBundlePath.appending(component: "App"))
+            try await fileSystem.writeText("config-content", at: appBundlePath.appending(component: "Info.plist"))
+
+            given(appBundleLoader)
+                .load(.any)
+                .willReturn(
+                    .test(
+                        infoPlist: .test(
+                            name: "App",
+                            bundleId: "com.App",
+                            supportedPlatforms: ["iPhoneOS"]
+                        )
+                    )
+                )
+
+            // When
+            let got = try await subject.analyzeAppBundle(at: xcarchivePath)
+
+            // Then
+            #expect(
+                got == AppBundleReport(
+                    bundleId: "com.App",
+                    name: "App",
+                    type: .xcarchive,
+                    installSize: 28,
+                    downloadSize: nil,
+                    platforms: ["iPhoneOS"],
+                    version: "1.0",
+                    artifacts: [
+                        AppBundleArtifact(
+                            artifactType: .file,
+                            path: "App.app/App",
+                            size: 14,
+                            shasum: "App",
+                            children: nil
+                        ),
+                        AppBundleArtifact(
+                            artifactType: .file,
+                            path: "App.app/Info.plist",
+                            size: 14,
+                            shasum: "Info.plist",
+                            children: nil
+                        ),
+                    ]
+                )
+            )
+            #expect(got.downloadSize == nil)
+        }
+    }
+
+    @Test func ipaBundle() async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            // Given
+            let payloadPath = temporaryDirectory.appending(component: "ipa-contents").appending(component: "Payload")
+            let appBundlePath = payloadPath.appending(component: "App.app")
+            try await fileSystem.makeDirectory(at: appBundlePath)
+            try await fileSystem.writeText("binary-content", at: appBundlePath.appending(component: "App"))
+            try await fileSystem.writeText("font-binary", at: appBundlePath.appending(component: "Font.ttf"))
+
+            given(appBundleLoader)
+                .load(.any)
+                .willReturn(
+                    .test(
+                        infoPlist: .test(
+                            name: "App",
+                            bundleId: "com.App",
+                            supportedPlatforms: ["iPhoneOS"]
+                        )
+                    )
+                )
+
+            // Create IPA file
+            let ipaPath = temporaryDirectory.appending(component: "App.ipa")
+            try await fileSystem.zipFileOrDirectoryContent(
+                at: temporaryDirectory.appending(component: "ipa-contents"),
+                to: ipaPath
+            )
+
+            // When
+            let got = try await subject.analyzeAppBundle(at: ipaPath)
+
+            // Then
+            #expect(
+                got == AppBundleReport(
+                    bundleId: "com.App",
+                    name: "App",
+                    type: .ipa,
+                    installSize: 25,
+                    downloadSize: got.downloadSize, // Compare the actual download size since it varies with compression
+                    platforms: ["iPhoneOS"],
+                    version: "1.0",
+                    artifacts: [
+                        AppBundleArtifact(
+                            artifactType: .file,
+                            path: "App.app/App",
+                            size: 14,
+                            shasum: "App",
+                            children: nil
+                        ),
+                        AppBundleArtifact(
+                            artifactType: .font,
+                            path: "App.app/Font.ttf",
+                            size: 11,
+                            shasum: "Font.ttf",
+                            children: nil
+                        ),
+                    ]
+                )
+            )
+
+            #expect(got.downloadSize != nil)
+            #expect(got.downloadSize! > 0)
         }
     }
 }
