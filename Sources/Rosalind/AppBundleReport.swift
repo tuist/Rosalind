@@ -1,8 +1,12 @@
 // A Rosalind report of an app bundle such as `.ipa`.
 public struct AppBundleReport: Sendable, Codable, Equatable {
+    /// The type of app bundle being analyzed.
     public enum BundleType: String, Sendable, Codable, Equatable {
+        /// A standalone `.app` bundle
         case app
+        /// An iOS App Store Package (`.ipa`) containing a compressed app bundle
         case ipa
+        /// An Xcode archive (`.xcarchive`) containing the app bundle and additional metadata
         case xcarchive
     }
 

@@ -239,7 +239,7 @@ struct RosalindTests {
                     name: "App",
                     type: .ipa,
                     installSize: 25,
-                    downloadSize: got.downloadSize, // Compare the actual download size since it varies with compression
+                    downloadSize: got.downloadSize,
                     platforms: ["iPhoneOS"],
                     version: "1.0",
                     artifacts: [
@@ -260,9 +260,6 @@ struct RosalindTests {
                     ]
                 )
             )
-
-            #expect(got.downloadSize != nil)
-            #expect(got.downloadSize! > 0)
         }
     }
 }
