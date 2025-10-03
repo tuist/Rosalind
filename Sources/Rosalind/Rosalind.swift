@@ -102,16 +102,23 @@ public struct Rosalind: Rosalindable {
             let appBundle = try await appBundleLoader.load(appBundlePath)
 
             let downloadSize: Int?
+            let bundleType: AppBundleReport.BundleType
             switch path.extension {
             case "ipa":
                 downloadSize = try fileSize(at: path)
+                bundleType = .ipa
+            case "xcarchive":
+                downloadSize = nil
+                bundleType = .xcarchive
             default:
                 downloadSize = nil
+                bundleType = .app
             }
 
             return AppBundleReport(
                 bundleId: appBundle.infoPlist.bundleId,
                 name: appBundle.infoPlist.name,
+                type: bundleType,
                 installSize: artifact.size,
                 downloadSize: downloadSize,
                 platforms: appBundle.infoPlist.supportedPlatforms,
