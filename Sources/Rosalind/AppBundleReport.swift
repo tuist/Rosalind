@@ -1,9 +1,21 @@
 // A Rosalind report of an app bundle such as `.ipa`.
 public struct AppBundleReport: Sendable, Codable, Equatable {
+    /// The type of app bundle being analyzed.
+    public enum BundleType: String, Sendable, Codable, Equatable {
+        /// A standalone `.app` bundle
+        case app
+        /// An iOS App Store Package (`.ipa`) containing a compressed app bundle
+        case ipa
+        /// An Xcode archive (`.xcarchive`) containing the app bundle and additional metadata
+        case xcarchive
+    }
+
     /// App's Bundle ID
     public let bundleId: String
     /// The app name
     public let name: String
+    /// The type of the bundle
+    public let type: BundleType
     /// The app install size in bytes. This is the size of the `.app` bundle and represents the value that will be installed on
     /// the device.
     public let installSize: Int
@@ -21,6 +33,7 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
     public init(
         bundleId: String,
         name: String,
+        type: BundleType,
         installSize: Int,
         downloadSize: Int?,
         platforms: [String],
@@ -29,6 +42,7 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
     ) {
         self.bundleId = bundleId
         self.name = name
+        self.type = type
         self.installSize = installSize
         self.downloadSize = downloadSize
         self.platforms = platforms
