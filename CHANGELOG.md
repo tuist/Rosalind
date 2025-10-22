@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.17] - 2025-10-22
+### Details
+#### Chore
+- Update dependency pnpm to v10.19.0 by @renovate[bot] in [#266](https://github.com/tuist/Rosalind/pull/266)
+
 ## [0.6.16] - 2025-10-21
 ### Details
 #### Chore
@@ -1033,6 +1038,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.6.17]: https://github.com/tuist/Rosalind/compare/0.6.16..0.6.17
 [0.6.16]: https://github.com/tuist/Rosalind/compare/0.6.15..0.6.16
 [0.6.15]: https://github.com/tuist/Rosalind/compare/0.6.14..0.6.15
 [0.6.14]: https://github.com/tuist/Rosalind/compare/0.6.13..0.6.14
