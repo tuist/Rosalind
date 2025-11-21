@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.62] - 2025-11-21
+### Details
+#### Chore
+- Update dependency kolos65/mockable to from: "0.5.0" by @renovate[bot] in [#310](https://github.com/tuist/Rosalind/pull/310)
+
 ## [0.6.61] - 2025-11-21
 ### Details
 #### Chore
@@ -1258,6 +1263,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.6.62]: https://github.com/tuist/Rosalind/compare/0.6.61..0.6.62
 [0.6.61]: https://github.com/tuist/Rosalind/compare/0.6.60..0.6.61
 [0.6.60]: https://github.com/tuist/Rosalind/compare/0.6.59..0.6.60
 [0.6.59]: https://github.com/tuist/Rosalind/compare/0.6.58..0.6.59
