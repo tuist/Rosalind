@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.85] - 2025-12-04
+### Details
+#### Chore
+- Update dependency esbuild to v0.27.1 by @renovate[bot] in [#337](https://github.com/tuist/Rosalind/pull/337)
+
 ## [0.6.84] - 2025-12-03
 ### Details
 #### Chore
@@ -1373,6 +1378,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.6.85]: https://github.com/tuist/Rosalind/compare/0.6.84..0.6.85
 [0.6.84]: https://github.com/tuist/Rosalind/compare/0.6.83..0.6.84
 [0.6.83]: https://github.com/tuist/Rosalind/compare/0.6.82..0.6.83
 [0.6.82]: https://github.com/tuist/Rosalind/compare/0.6.81..0.6.82
