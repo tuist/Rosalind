@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.90] - 2025-12-08
+### Details
+#### Chore
+- Lock file maintenance by @renovate[bot] in [#341](https://github.com/tuist/Rosalind/pull/341)
+
 ## [0.6.89] - 2025-12-05
 ### Details
 #### Chore
@@ -1398,6 +1403,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.6.90]: https://github.com/tuist/Rosalind/compare/0.6.89..0.6.90
 [0.6.89]: https://github.com/tuist/Rosalind/compare/0.6.88..0.6.89
 [0.6.88]: https://github.com/tuist/Rosalind/compare/0.6.87..0.6.88
 [0.6.87]: https://github.com/tuist/Rosalind/compare/0.6.86..0.6.87
