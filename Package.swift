@@ -25,7 +25,7 @@ let package = Package(
         // crypto capabilities need to be imported using a package.
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.15.1")),
         .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.45.0")),
-        .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.5.0")),
+        .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.5.1")),
     ],
     targets: [
         .target(
