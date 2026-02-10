@@ -2,5 +2,5 @@
 "git-cliff" = "2.4.0"
 "pnpm" = "10.29.2"
 "nodejs" = "22.21.1"
-"swiftlint" = "0.54.0"
+"swiftlint" = "0.63.2"
 "swiftformat" = "0.52.10"
