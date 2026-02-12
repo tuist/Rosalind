@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: jdx/mise-action@v2
+      - uses: jdx/mise-action@v3
       - name: Install dependencies
         run: mise run install
       - name: Build
