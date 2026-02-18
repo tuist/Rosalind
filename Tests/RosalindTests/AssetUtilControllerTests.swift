@@ -1,11 +1,12 @@
-import Command
-import Foundation
-import Mockable
-import Path
-import Testing
-@testable import Rosalind
+#if os(macOS)
+    import Command
+    import Foundation
+    import Mockable
+    import Path
+    import Testing
+    @testable import Rosalind
 
-@Suite struct AssetUtilControllerTests {
+    @Suite struct AssetUtilControllerTests {
     private let commandRunner = MockCommandRunning()
     private let subject: AssetUtilController
 
@@ -359,4 +360,5 @@ import Testing
             return false
         }
     }
-}
+    }
+#endif

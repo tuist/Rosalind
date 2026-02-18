@@ -9,23 +9,44 @@ struct RosalindTests {
     private let fileSystem = FileSystem()
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
-    private let assetUtilController = MockAssetUtilControlling()
+    private let aapt2Controller = MockAapt2Controlling()
+    #if os(macOS)
+        private let assetUtilController = MockAssetUtilControlling()
+    #endif
     private let subject: Rosalind
 
-    init() {
-        given(shasumCalculator)
-            .calculate(filePath: .any)
-            .willProduce { $0.basename }
-        given(shasumCalculator)
-            .calculate(childrenShasums: .any)
-            .willProduce { $0.joined(separator: "-") }
-        subject = Rosalind(
-            fileSystem: fileSystem,
-            appBundleLoader: appBundleLoader,
-            shasumCalculator: shasumCalculator,
-            assetUtilController: assetUtilController
-        )
-    }
+    #if os(macOS)
+        init() {
+            given(shasumCalculator)
+                .calculate(filePath: .any)
+                .willProduce { $0.basename }
+            given(shasumCalculator)
+                .calculate(childrenShasums: .any)
+                .willProduce { $0.joined(separator: "-") }
+            subject = Rosalind(
+                fileSystem: fileSystem,
+                appBundleLoader: appBundleLoader,
+                shasumCalculator: shasumCalculator,
+                aapt2Controller: aapt2Controller,
+                assetUtilController: assetUtilController
+            )
+        }
+    #else
+        init() {
+            given(shasumCalculator)
+                .calculate(filePath: .any)
+                .willProduce { $0.basename }
+            given(shasumCalculator)
+                .calculate(childrenShasums: .any)
+                .willProduce { $0.joined(separator: "-") }
+            subject = Rosalind(
+                fileSystem: fileSystem,
+                appBundleLoader: appBundleLoader,
+                shasumCalculator: shasumCalculator,
+                aapt2Controller: aapt2Controller
+            )
+        }
+    #endif
 
     @Test func appBundleDoesNotExist() async throws {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
@@ -134,13 +155,13 @@ struct RosalindTests {
     @Test func appBundleNotSupported() async throws {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             // Given
-            let apkPath = temporaryDirectory.appending(component: "App.apk")
-            try await fileSystem.makeDirectory(at: apkPath)
+            let dmgPath = temporaryDirectory.appending(component: "App.dmg")
+            try await fileSystem.makeDirectory(at: dmgPath)
             // When / Then
             await #expect(
-                throws: RosalindError.notSupported(apkPath)
+                throws: RosalindError.notSupported(dmgPath)
             ) {
-                try await subject.analyzeAppBundle(at: apkPath)
+                try await subject.analyzeAppBundle(at: dmgPath)
             }
         }
     }
@@ -260,6 +281,90 @@ struct RosalindTests {
                     ]
                 )
             )
+        }
+    }
+
+    @Test func aabBundle() async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            // Given
+            let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
+            let basePath = aabContentsPath.appending(component: "base")
+            let dexDir = basePath.appending(component: "dex")
+            try await fileSystem.makeDirectory(at: dexDir)
+            try await fileSystem.writeText("dex-bytecode", at: dexDir.appending(component: "classes.dex"))
+            try await fileSystem.writeText("native-lib", at: basePath.appending(component: "libapp.so"))
+
+            let aabPath = temporaryDirectory.appending(component: "app.aab")
+            try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
+
+            given(aapt2Controller)
+                .aabMetadata(at: .any)
+                .willReturn(AndroidBundleMetadata(
+                    packageName: "com.test.app",
+                    versionName: "2.0",
+                    appName: "Test App"
+                ))
+
+            // When
+            let got = try await subject.analyzeAppBundle(at: aabPath)
+
+            // Then
+            #expect(got.bundleId == "com.test.app")
+            #expect(got.name == "Test App")
+            #expect(got.type == .aab)
+            #expect(got.version == "2.0")
+            #expect(got.platforms == ["android"])
+            #expect(got.downloadSize != nil)
+
+            let artifactPaths = got.artifacts.map(\.path)
+            #expect(artifactPaths.contains("com.test.app/dex"))
+            #expect(artifactPaths.contains("com.test.app/libapp.so"))
+
+            let dexArtifact = got.artifacts
+                .first(where: { $0.path == "com.test.app/dex" })?
+                .children?
+                .first(where: { $0.path == "com.test.app/dex/classes.dex" })
+            #expect(dexArtifact?.artifactType == .binary)
+
+            let soArtifact = got.artifacts
+                .first(where: { $0.path == "com.test.app/libapp.so" })
+            #expect(soArtifact?.artifactType == .binary)
+        }
+    }
+
+    @Test func apkBundle() async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            // Given
+            let apkContentsPath = temporaryDirectory.appending(component: "apk-contents")
+            try await fileSystem.makeDirectory(at: apkContentsPath)
+            try await fileSystem.writeText("dex-bytecode", at: apkContentsPath.appending(component: "classes.dex"))
+            try await fileSystem.writeText("resources", at: apkContentsPath.appending(component: "resources.arsc"))
+
+            let apkPath = temporaryDirectory.appending(component: "app.apk")
+            try await fileSystem.zipFileOrDirectoryContent(at: apkContentsPath, to: apkPath)
+
+            given(aapt2Controller)
+                .apkMetadata(at: .any)
+                .willReturn(AndroidBundleMetadata(
+                    packageName: "com.test.app",
+                    versionName: "1.0",
+                    appName: "Test App"
+                ))
+
+            // When
+            let got = try await subject.analyzeAppBundle(at: apkPath)
+
+            // Then
+            #expect(got.bundleId == "com.test.app")
+            #expect(got.name == "Test App")
+            #expect(got.type == .apk)
+            #expect(got.version == "1.0")
+            #expect(got.platforms == ["android"])
+            #expect(got.downloadSize != nil)
+
+            let arscArtifact = got.artifacts
+                .first(where: { $0.path.hasSuffix("resources.arsc") })
+            #expect(arscArtifact?.artifactType == .asset)
         }
     }
 }
