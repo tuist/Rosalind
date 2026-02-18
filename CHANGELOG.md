@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-18
+### Details
+#### Feat
+- Add Android bundle analysis (AAB + APK) by @fortmarek in [#402](https://github.com/tuist/Rosalind/pull/402)
+
 ## [0.6.148] - 2026-02-18
 ### Details
 #### Chore
@@ -1694,6 +1699,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.7.0]: https://github.com/tuist/Rosalind/compare/0.6.148..0.7.0
 [0.6.148]: https://github.com/tuist/Rosalind/compare/0.6.147..0.6.148
 [0.6.147]: https://github.com/tuist/Rosalind/compare/0.6.146..0.6.147
 [0.6.146]: https://github.com/tuist/Rosalind/compare/0.6.145..0.6.146
