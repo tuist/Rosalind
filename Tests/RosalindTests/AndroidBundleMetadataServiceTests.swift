@@ -7,12 +7,12 @@ import Testing
 
 @testable import Rosalind
 
-struct Aapt2ControllerTests {
+struct AndroidBundleMetadataServiceTests {
     // MARK: - APK Metadata
 
     @Test func apkMetadata_parsesAllFields() async throws {
         let commandRunner = MockCommandRunning()
-        let subject = Aapt2Controller(commandRunner: commandRunner)
+        let subject = AndroidBundleMetadataService(commandRunner: commandRunner)
         let path = try AbsolutePath(validating: "/path/to/app.apk")
 
         let output = """
@@ -45,7 +45,7 @@ struct Aapt2ControllerTests {
 
     @Test func apkMetadata_usesDefaults_whenOptionalFieldsMissing() async throws {
         let commandRunner = MockCommandRunning()
-        let subject = Aapt2Controller(commandRunner: commandRunner)
+        let subject = AndroidBundleMetadataService(commandRunner: commandRunner)
         let path = try AbsolutePath(validating: "/path/to/app.apk")
 
         let output = "package: name='com.example.app' versionCode='1'\n"
@@ -72,7 +72,7 @@ struct Aapt2ControllerTests {
 
     @Test func apkMetadata_throws_whenPackageNameMissing() async throws {
         let commandRunner = MockCommandRunning()
-        let subject = Aapt2Controller(commandRunner: commandRunner)
+        let subject = AndroidBundleMetadataService(commandRunner: commandRunner)
         let path = try AbsolutePath(validating: "/path/to/app.apk")
 
         let output = "sdkVersion:'21'\ntargetSdkVersion:'34'\n"
@@ -93,7 +93,7 @@ struct Aapt2ControllerTests {
         await #expect {
             try await subject.apkMetadata(at: path)
         } throws: { error in
-            if let e = error as? Aapt2ControllerError, case .parsingFailed = e { return true }
+            if let e = error as? AndroidBundleMetadataServiceError, case .parsingFailed = e { return true }
             return false
         }
     }
@@ -102,7 +102,7 @@ struct Aapt2ControllerTests {
 
     @Test func aabMetadata_parsesManifestAndResources() async throws {
         let fileSystem = FileSystem()
-        let subject = Aapt2Controller(fileSystem: fileSystem)
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
         let aabPath = try fixturePath("android_app/app.aab")
 
         let metadata = try await subject.aabMetadata(at: aabPath)
@@ -114,7 +114,7 @@ struct Aapt2ControllerTests {
 
     @Test func aabMetadata_throws_whenManifestNotFound() async throws {
         let fileSystem = FileSystem()
-        let subject = Aapt2Controller(fileSystem: fileSystem)
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
 
         try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
             let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
@@ -128,7 +128,7 @@ struct Aapt2ControllerTests {
             await #expect {
                 try await subject.aabMetadata(at: aabPath)
             } throws: { error in
-                if let e = error as? Aapt2ControllerError, case .manifestNotFound = e { return true }
+                if let e = error as? AndroidBundleMetadataServiceError, case .manifestNotFound = e { return true }
                 return false
             }
         }

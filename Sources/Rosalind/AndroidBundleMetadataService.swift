@@ -4,17 +4,14 @@ import Foundation
 import Mockable
 import Path
 
-enum Aapt2ControllerError: LocalizedError {
+enum AndroidBundleMetadataServiceError: LocalizedError {
     case parsingFailed(AbsolutePath)
-    case aapt2NotFound
     case manifestNotFound(AbsolutePath)
 
     var errorDescription: String? {
         switch self {
         case let .parsingFailed(path):
             return "Failed to parse Android bundle metadata from \(path.pathString)."
-        case .aapt2NotFound:
-            return "Couldn't locate the executable 'aapt2' in the environment."
         case let .manifestNotFound(path):
             return "AndroidManifest.xml not found in the extracted bundle at \(path.pathString)."
         }
@@ -28,12 +25,12 @@ struct AndroidBundleMetadata: Equatable {
 }
 
 @Mockable
-protocol Aapt2Controlling: Sendable {
+protocol AndroidBundleMetadataServicing: Sendable {
     func apkMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata
     func aabMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata
 }
 
-struct Aapt2Controller: Aapt2Controlling {
+struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     @TaskLocal static var poolLock: PoolLock = .init(capacity: 5)
 
     private let commandRunner: CommandRunning
@@ -66,7 +63,7 @@ struct Aapt2Controller: Aapt2Controlling {
         let appName = parseValue(from: output, pattern: "application-label:'([^']+)'")
 
         guard let packageName else {
-            throw Aapt2ControllerError.parsingFailed(path)
+            throw AndroidBundleMetadataServiceError.parsingFailed(path)
         }
 
         return AndroidBundleMetadata(
@@ -83,7 +80,7 @@ struct Aapt2Controller: Aapt2Controlling {
 
             let manifestPath = unzippedPath.appending(components: "base", "manifest", "AndroidManifest.xml")
             guard try await fileSystem.exists(manifestPath) else {
-                throw Aapt2ControllerError.manifestNotFound(path)
+                throw AndroidBundleMetadataServiceError.manifestNotFound(path)
             }
 
             let data = try await fileSystem.readFile(at: manifestPath)
@@ -93,7 +90,7 @@ struct Aapt2Controller: Aapt2Controlling {
             let versionName = attributes.first(where: { $0.name == "versionName" })?.value
 
             guard let packageName, !packageName.isEmpty else {
-                throw Aapt2ControllerError.parsingFailed(manifestPath)
+                throw AndroidBundleMetadataServiceError.parsingFailed(manifestPath)
             }
 
             var appName: String?

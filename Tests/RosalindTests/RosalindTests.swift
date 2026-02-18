@@ -9,7 +9,7 @@ struct RosalindTests {
     private let fileSystem = FileSystem()
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
-    private let aapt2Controller = MockAapt2Controlling()
+    private let androidBundleMetadataService = MockAndroidBundleMetadataServicing()
     #if os(macOS)
         private let assetUtilController = MockAssetUtilControlling()
     #endif
@@ -27,7 +27,7 @@ struct RosalindTests {
                 fileSystem: fileSystem,
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
-                aapt2Controller: aapt2Controller,
+                androidBundleMetadataService: androidBundleMetadataService,
                 assetUtilController: assetUtilController
             )
         }
@@ -43,7 +43,7 @@ struct RosalindTests {
                 fileSystem: fileSystem,
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
-                aapt2Controller: aapt2Controller
+                androidBundleMetadataService: androidBundleMetadataService
             )
         }
     #endif
@@ -297,7 +297,7 @@ struct RosalindTests {
             let aabPath = temporaryDirectory.appending(component: "app.aab")
             try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
 
-            given(aapt2Controller)
+            given(androidBundleMetadataService)
                 .aabMetadata(at: .any)
                 .willReturn(AndroidBundleMetadata(
                     packageName: "com.test.app",
@@ -343,7 +343,7 @@ struct RosalindTests {
             let apkPath = temporaryDirectory.appending(component: "app.apk")
             try await fileSystem.zipFileOrDirectoryContent(at: apkContentsPath, to: apkPath)
 
-            given(aapt2Controller)
+            given(androidBundleMetadataService)
                 .apkMetadata(at: .any)
                 .willReturn(AndroidBundleMetadata(
                     packageName: "com.test.app",

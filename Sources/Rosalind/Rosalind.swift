@@ -65,7 +65,7 @@ public struct Rosalind: Rosalindable {
     private let fileSystem: FileSysteming
     private let appBundleLoader: AppBundleLoading
     private let shasumCalculator: ShasumCalculating
-    private let aapt2Controller: Aapt2Controlling
+    private let androidBundleMetadataService: AndroidBundleMetadataServicing
     #if os(macOS)
         private let assetUtilController: AssetUtilControlling
     #endif
@@ -77,7 +77,7 @@ public struct Rosalind: Rosalindable {
                 fileSystem: FileSystem(),
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
-                aapt2Controller: Aapt2Controller(),
+                androidBundleMetadataService: AndroidBundleMetadataService(),
                 assetUtilController: AssetUtilController()
             )
         }
@@ -86,13 +86,13 @@ public struct Rosalind: Rosalindable {
             fileSystem: FileSysteming,
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
-            aapt2Controller: Aapt2Controlling,
+            androidBundleMetadataService: AndroidBundleMetadataServicing,
             assetUtilController: AssetUtilControlling
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
-            self.aapt2Controller = aapt2Controller
+            self.androidBundleMetadataService = androidBundleMetadataService
             self.assetUtilController = assetUtilController
         }
     #else
@@ -102,7 +102,7 @@ public struct Rosalind: Rosalindable {
                 fileSystem: FileSystem(),
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
-                aapt2Controller: Aapt2Controller()
+                androidBundleMetadataService: AndroidBundleMetadataService()
             )
         }
 
@@ -110,12 +110,12 @@ public struct Rosalind: Rosalindable {
             fileSystem: FileSysteming,
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
-            aapt2Controller: Aapt2Controlling
+            androidBundleMetadataService: AndroidBundleMetadataServicing
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
-            self.aapt2Controller = aapt2Controller
+            self.androidBundleMetadataService = androidBundleMetadataService
         }
     #endif
 
@@ -141,9 +141,9 @@ public struct Rosalind: Rosalindable {
 
             let metadata: AndroidBundleMetadata
             if path.extension == "aab" {
-                metadata = try await aapt2Controller.aabMetadata(at: path)
+                metadata = try await androidBundleMetadataService.aabMetadata(at: path)
             } else {
-                metadata = try await aapt2Controller.apkMetadata(at: path)
+                metadata = try await androidBundleMetadataService.apkMetadata(at: path)
             }
 
             let contentPath: AbsolutePath
