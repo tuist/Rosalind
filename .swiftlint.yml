@@ -1,3 +1,5 @@
+excluded:
+  - Sources/Rosalind/Proto/Generated
 disabled_rules:
   - trailing_whitespace
   - trailing_comma
