@@ -8,6 +8,10 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
         case ipa
         /// An Xcode archive (`.xcarchive`) containing the app bundle and additional metadata
         case xcarchive
+        /// An Android App Bundle (`.aab`)
+        case aab
+        /// An Android Package (`.apk`)
+        case apk
     }
 
     /// App's Bundle ID

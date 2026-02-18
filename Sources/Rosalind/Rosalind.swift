@@ -1,7 +1,9 @@
 import Command
 @preconcurrency import FileSystem
 import Foundation
-import MachOKit
+#if canImport(MachOKit)
+    import MachOKit
+#endif
 import Path
 
 enum RosalindError: LocalizedError, Equatable {
@@ -16,7 +18,8 @@ enum RosalindError: LocalizedError, Equatable {
         case let .appNotFound(path):
             return "No app found at \(path). Make sure the passed app bundle is valid."
         case let .notSupported(path):
-            return "The app bundle \(path) is not supported. Only `.xcarchive`, `.ipa`, and `.app` bundles are supported."
+            return
+                "The app bundle \(path) is not supported. Only `.xcarchive`, `.ipa`, `.app`, `.aab`, and `.apk` bundles are supported."
         }
     }
 }
@@ -62,29 +65,59 @@ public struct Rosalind: Rosalindable {
     private let fileSystem: FileSysteming
     private let appBundleLoader: AppBundleLoading
     private let shasumCalculator: ShasumCalculating
-    private let assetUtilController: AssetUtilControlling
+    private let aapt2Controller: Aapt2Controlling
+    #if os(macOS)
+        private let assetUtilController: AssetUtilControlling
+    #endif
 
-    /// The default constructor of Rosalind.
-    public init() {
-        self.init(
-            fileSystem: FileSystem(),
-            appBundleLoader: AppBundleLoader(),
-            shasumCalculator: ShasumCalculator(),
-            assetUtilController: AssetUtilController()
-        )
-    }
+    #if os(macOS)
+        /// The default constructor of Rosalind.
+        public init() {
+            self.init(
+                fileSystem: FileSystem(),
+                appBundleLoader: AppBundleLoader(),
+                shasumCalculator: ShasumCalculator(),
+                aapt2Controller: Aapt2Controller(),
+                assetUtilController: AssetUtilController()
+            )
+        }
 
-    init(
-        fileSystem: FileSysteming,
-        appBundleLoader: AppBundleLoading,
-        shasumCalculator: ShasumCalculating,
-        assetUtilController: AssetUtilControlling
-    ) {
-        self.fileSystem = fileSystem
-        self.appBundleLoader = appBundleLoader
-        self.shasumCalculator = shasumCalculator
-        self.assetUtilController = assetUtilController
-    }
+        init(
+            fileSystem: FileSysteming,
+            appBundleLoader: AppBundleLoading,
+            shasumCalculator: ShasumCalculating,
+            aapt2Controller: Aapt2Controlling,
+            assetUtilController: AssetUtilControlling
+        ) {
+            self.fileSystem = fileSystem
+            self.appBundleLoader = appBundleLoader
+            self.shasumCalculator = shasumCalculator
+            self.aapt2Controller = aapt2Controller
+            self.assetUtilController = assetUtilController
+        }
+    #else
+        /// The default constructor of Rosalind.
+        public init() {
+            self.init(
+                fileSystem: FileSystem(),
+                appBundleLoader: AppBundleLoader(),
+                shasumCalculator: ShasumCalculator(),
+                aapt2Controller: Aapt2Controller()
+            )
+        }
+
+        init(
+            fileSystem: FileSysteming,
+            appBundleLoader: AppBundleLoading,
+            shasumCalculator: ShasumCalculating,
+            aapt2Controller: Aapt2Controlling
+        ) {
+            self.fileSystem = fileSystem
+            self.appBundleLoader = appBundleLoader
+            self.shasumCalculator = shasumCalculator
+            self.aapt2Controller = aapt2Controller
+        }
+    #endif
 
     /// Given the absolute path to an artifact that's result of a compilation, for example a .app bundle,
     /// Rosalind analyzes it and returns a report.
@@ -92,12 +125,71 @@ public struct Rosalind: Rosalindable {
     /// - Returns: A `RosalindReport` instance that captures the analysis.
     public func analyzeAppBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
+
+        switch path.extension {
+        case "aab", "apk":
+            return try await analyzeAndroidBundle(at: path)
+        default:
+            return try await analyzeAppleBundle(at: path)
+        }
+    }
+
+    private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
+        return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            let unzippedPath = temporaryDirectory.appending(component: path.basename)
+            try await fileSystem.unzip(path, to: unzippedPath)
+
+            let metadata: AndroidBundleMetadata
+            if path.extension == "aab" {
+                metadata = try await aapt2Controller.aabMetadata(at: path)
+            } else {
+                metadata = try await aapt2Controller.apkMetadata(at: path)
+            }
+
+            let contentPath: AbsolutePath
+            let basePath = unzippedPath.appending(component: "base")
+            if try await fileSystem.exists(basePath, isDirectory: true) {
+                let renamedPath = temporaryDirectory.appending(component: metadata.packageName)
+                try FileManager.default.moveItem(
+                    atPath: basePath.pathString,
+                    toPath: renamedPath.pathString
+                )
+                contentPath = renamedPath
+            } else {
+                contentPath = unzippedPath
+            }
+
+            let artifactPath = try await pathToArtifact(contentPath)
+            let artifact = try await traverse(
+                artifact: artifactPath,
+                baseArtifact: artifactPath,
+                isAndroid: true
+            )
+
+            let downloadSize = try fileSize(at: path)
+            let bundleType: AppBundleReport.BundleType = path.extension == "aab" ? .aab : .apk
+
+            return AppBundleReport(
+                bundleId: metadata.packageName,
+                name: metadata.appName,
+                type: bundleType,
+                installSize: artifact.size,
+                downloadSize: downloadSize,
+                platforms: ["android"],
+                version: metadata.versionName,
+                artifacts: artifact.children ?? []
+            )
+        }
+    }
+
+    private func analyzeAppleBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             let appBundlePath = try await appBundlePath(path, temporaryDirectory: temporaryDirectory)
             let artifactPath = try await pathToArtifact(appBundlePath)
             let artifact = try await traverse(
                 artifact: artifactPath,
-                baseArtifact: artifactPath
+                baseArtifact: artifactPath,
+                isAndroid: false
             )
             let appBundle = try await appBundleLoader.load(appBundlePath)
 
@@ -162,33 +254,40 @@ public struct Rosalind: Rosalindable {
         }
     }
 
-    private func traverse(artifact: FileSystemArtifact, baseArtifact: FileSystemArtifact) async throws -> AppBundleArtifact {
+    private func traverse(
+        artifact: FileSystemArtifact,
+        baseArtifact: FileSystemArtifact,
+        isAndroid: Bool
+    ) async throws -> AppBundleArtifact {
         let children: [AppBundleArtifact]?
-        let artifactType = try artifactType(for: artifact)
+        let artifactType = try artifactType(for: artifact, isAndroid: isAndroid)
         switch artifactType {
-        case .asset:
-            let infos = try await assetUtilController.info(at: artifact.path)
-            children = try infos.compactMap { info -> AppBundleArtifact? in
-                guard let sizeOnDisk = info.sizeOnDisk,
-                      let sha1Digest = info.sha1Digest,
-                      let renditionName = info.renditionName
-                else { return nil }
+        #if os(macOS)
+            case .asset where !isAndroid:
+                let infos = try await assetUtilController.info(at: artifact.path)
+                children = try infos.compactMap { info -> AppBundleArtifact? in
+                    guard let sizeOnDisk = info.sizeOnDisk,
+                          let sha1Digest = info.sha1Digest,
+                          let renditionName = info.renditionName
+                    else { return nil }
 
-                return AppBundleArtifact(
-                    artifactType: .asset,
-                    path: try RelativePath(validating: baseArtifact.path.basename)
-                        .appending(artifact.path.appending(component: renditionName).relative(to: baseArtifact.path)).pathString,
-                    size: sizeOnDisk,
-                    shasum: sha1Digest.lowercased(),
-                    children: nil
-                )
-            }
+                    return AppBundleArtifact(
+                        artifactType: .asset,
+                        path: try RelativePath(validating: baseArtifact.path.basename)
+                            .appending(artifact.path.appending(component: renditionName).relative(to: baseArtifact.path))
+                            .pathString,
+                        size: sizeOnDisk,
+                        shasum: sha1Digest.lowercased(),
+                        children: nil
+                    )
+                }
+        #endif
         case .directory:
             children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
                 .asyncMap {
-                    try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact)
+                    try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact, isAndroid: isAndroid)
                 }
-        case .file, .binary, .localization, .font:
+        default:
             children = nil
         }
 
@@ -204,26 +303,34 @@ public struct Rosalind: Rosalindable {
         )
     }
 
-    private func artifactType(for artifact: FileSystemArtifact) throws -> AppBundleArtifact.ArtifactType {
+    private func artifactType(for artifact: FileSystemArtifact, isAndroid: Bool) throws -> AppBundleArtifact.ArtifactType {
         switch artifact.path.extension {
         case "otf", "ttc", "ttf", "woff": return .font
         case "strings", "xcstrings": return .localization
-        case "car": return .asset
+        case "dex", "so": return .binary
+        case "arsc": return .asset
+        case "car" where !isAndroid: return .asset
         default:
             if artifact.isDirectory {
                 return .directory
+            } else if isAndroid {
+                return .file
             } else {
-                let fileURL = URL(fileURLWithPath: artifact.path.pathString)
-                let fileHandle = try FileHandle(forReadingFrom: fileURL)
-                defer { try? fileHandle.close() }
+                #if canImport(MachOKit)
+                    let fileURL = URL(fileURLWithPath: artifact.path.pathString)
+                    let fileHandle = try FileHandle(forReadingFrom: fileURL)
+                    defer { try? fileHandle.close() }
 
-                if let magicRaw: UInt32 = fileHandle.read(offset: 0),
-                   Magic(rawValue: magicRaw) != nil
-                {
-                    return .binary
-                } else {
+                    if let magicRaw: UInt32 = fileHandle.read(offset: 0),
+                       Magic(rawValue: magicRaw) != nil
+                    {
+                        return .binary
+                    } else {
+                        return .file
+                    }
+                #else
                     return .file
-                }
+                #endif
             }
         }
     }

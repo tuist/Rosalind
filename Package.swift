@@ -35,7 +35,7 @@ let package = Package(
                 .product(name: "Path", package: "Path"),
                 .product(name: "FileSystem", package: "FileSystem"),
                 .product(name: "Command", package: "Command"),
-                .product(name: "MachOKit", package: "MachOKit"),
+                .product(name: "MachOKit", package: "MachOKit", condition: .when(platforms: [.macOS])),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
