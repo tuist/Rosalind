@@ -1,6 +1,7 @@
 # file options
 
 --symlinks ignore
+--exclude Sources/Rosalind/Proto/Generated
 --disable hoistAwait
 --disable hoistTry
 --swiftversion 5.7

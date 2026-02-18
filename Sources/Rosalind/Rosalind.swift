@@ -135,7 +135,7 @@ public struct Rosalind: Rosalindable {
     }
 
     private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
-        return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             let unzippedPath = temporaryDirectory.appending(component: path.basename)
             try await fileSystem.unzip(path, to: unzippedPath)
 
@@ -180,7 +180,7 @@ public struct Rosalind: Rosalindable {
     }
 
     private func analyzeAppleBundle(at path: AbsolutePath) async throws -> AppBundleReport {
-        return try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             let appBundlePath = try await appBundlePath(path, temporaryDirectory: temporaryDirectory)
             let artifactPath = try await pathToArtifact(appBundlePath)
             let artifact = try await traverse(

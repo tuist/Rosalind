@@ -142,5 +142,4 @@ struct AndroidBundleMetadataServiceTests {
             .appending(component: "fixtures")
             .appending(try RelativePath(validating: relativePath))
     }
-
 }

@@ -74,7 +74,7 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     }
 
     func aabMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata {
-        return try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
+        try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
             let unzippedPath = temporaryDirectory.appending(component: path.basename)
             try await fileSystem.unzip(path, to: unzippedPath)
 
