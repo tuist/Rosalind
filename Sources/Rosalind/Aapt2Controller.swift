@@ -86,7 +86,7 @@ struct Aapt2Controller: Aapt2Controlling {
                 throw Aapt2ControllerError.manifestNotFound(path)
             }
 
-            let data = try Data(contentsOf: URL(fileURLWithPath: manifestPath.pathString))
+            let data = try await fileSystem.readFile(at: manifestPath)
             let packageName = findProtobufString(after: "package", in: data)
             let versionName = findProtobufString(after: "versionName", in: data)
 
@@ -97,7 +97,7 @@ struct Aapt2Controller: Aapt2Controlling {
             var appName: String?
             let resourcesPath = unzippedPath.appending(components: "base", "resources.pb")
             if try await fileSystem.exists(resourcesPath) {
-                let resourcesData = try Data(contentsOf: URL(fileURLWithPath: resourcesPath.pathString))
+                let resourcesData = try await fileSystem.readFile(at: resourcesPath)
                 appName = findProtobufString(after: "app_name", in: resourcesData, preferLongest: true)
             }
 
