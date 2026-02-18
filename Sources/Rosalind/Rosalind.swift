@@ -150,10 +150,7 @@ public struct Rosalind: Rosalindable {
             let basePath = unzippedPath.appending(component: "base")
             if try await fileSystem.exists(basePath, isDirectory: true) {
                 let renamedPath = temporaryDirectory.appending(component: metadata.packageName)
-                try FileManager.default.moveItem(
-                    atPath: basePath.pathString,
-                    toPath: renamedPath.pathString
-                )
+                try await fileSystem.move(from: basePath, to: renamedPath)
                 contentPath = renamedPath
             } else {
                 contentPath = unzippedPath
