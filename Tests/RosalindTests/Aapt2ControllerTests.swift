@@ -178,18 +178,19 @@ struct Aapt2ControllerTests {
         let manifestDir = basePath.appending(component: "manifest")
         try await fileSystem.makeDirectory(at: manifestDir)
 
-        var manifestData = Data()
-        manifestData.append(0x0A)
-        manifestData.append(contentsOf: "package".utf8)
-        manifestData.append(0x00)
-        manifestData.append(UInt8(packageName.utf8.count))
-        manifestData.append(contentsOf: packageName.utf8)
-        manifestData.append(0x0A)
-        manifestData.append(contentsOf: "versionName".utf8)
-        manifestData.append(0x00)
-        manifestData.append(UInt8(versionName.utf8.count))
-        manifestData.append(contentsOf: versionName.utf8)
+        var element = AaptXmlElement()
+        element.name = "manifest"
+        var packageAttr = AaptXmlAttribute()
+        packageAttr.name = "package"
+        packageAttr.value = packageName
+        var versionAttr = AaptXmlAttribute()
+        versionAttr.name = "versionName"
+        versionAttr.value = versionName
+        element.attributes = [packageAttr, versionAttr]
+        var xmlNode = AaptXmlNode()
+        xmlNode.element = element
 
+        let manifestData: Data = try xmlNode.serializedBytes()
         try manifestData.write(
             to: URL(fileURLWithPath: manifestDir.appending(component: "AndroidManifest.xml").pathString)
         )
@@ -210,4 +211,5 @@ struct Aapt2ControllerTests {
         try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
         return aabPath
     }
+
 }

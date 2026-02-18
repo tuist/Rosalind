@@ -26,6 +26,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.15.1")),
         .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.46.1")),
         .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.6.1")),
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.29.0")),
     ],
     targets: [
         .target(
@@ -36,6 +37,7 @@ let package = Package(
                 .product(name: "FileSystem", package: "FileSystem"),
                 .product(name: "Command", package: "Command"),
                 .product(name: "MachOKit", package: "MachOKit", condition: .when(platforms: [.macOS])),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
