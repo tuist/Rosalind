@@ -137,10 +137,11 @@ struct Aapt2Controller: Aapt2Controlling {
     }
 
     private func parseValue(from output: String, pattern: String) -> String? {
-        guard let regex = try? NSRegularExpression(pattern: pattern),
-              let match = regex.firstMatch(in: output, range: NSRange(output.startIndex..., in: output)),
-              let range = Range(match.range(at: 1), in: output)
+        guard let regex = try? Regex(pattern),
+              let match = try? regex.firstMatch(in: output),
+              match.output.count > 1,
+              let capture = match.output[1].substring
         else { return nil }
-        return String(output[range])
+        return String(capture)
     }
 }
