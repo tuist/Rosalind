@@ -87,8 +87,8 @@ struct Aapt2Controller: Aapt2Controlling {
             }
 
             let data = try await fileSystem.readFile(at: manifestPath)
-            let xmlNode = try AaptXmlNode(serializedBytes: data)
-            let attributes = xmlNode.element?.attributes ?? []
+            let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: data)
+            let attributes = xmlNode.element.attribute
             let packageName = attributes.first(where: { $0.name == "package" })?.value
             let versionName = attributes.first(where: { $0.name == "versionName" })?.value
 
@@ -96,13 +96,17 @@ struct Aapt2Controller: Aapt2Controlling {
                 throw Aapt2ControllerError.parsingFailed(manifestPath)
             }
 
-            // resources.pb uses the ResourceTable proto which is deeply nested (5+ message types).
-            // For just the app_name string, a byte scan is simpler than defining all those types.
             var appName: String?
             let resourcesPath = unzippedPath.appending(components: "base", "resources.pb")
             if try await fileSystem.exists(resourcesPath) {
                 let resourcesData = try await fileSystem.readFile(at: resourcesPath)
-                appName = findProtobufString(after: "app_name", in: resourcesData)
+                let resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
+                appName = resourceTable.package
+                    .flatMap(\.type)
+                    .flatMap(\.entry)
+                    .first(where: { $0.name == "app_name" })?
+                    .configValue.first?
+                    .value.item.str.value
             }
 
             return AndroidBundleMetadata(
@@ -111,33 +115,6 @@ struct Aapt2Controller: Aapt2Controlling {
                 appName: appName ?? packageName
             )
         }
-    }
-
-    /// Scans protobuf-encoded data for a key string and extracts the first valid
-    /// printable ASCII string that follows it. Used for resources.pb where the
-    /// ResourceTable proto schema is too deeply nested to warrant full type definitions.
-    private func findProtobufString(after key: String, in data: Data) -> String? {
-        guard let keyData = key.data(using: .utf8) else { return nil }
-        let bytes = [UInt8](data)
-        let keyBytes = [UInt8](keyData)
-
-        for i in 0 ..< bytes.count - keyBytes.count {
-            guard bytes[i ..< i + keyBytes.count].elementsEqual(keyBytes) else { continue }
-            let afterKey = i + keyBytes.count
-            for j in afterKey ..< min(afterKey + 40, bytes.count) {
-                let length = Int(bytes[j])
-                if length > 0, length < 200, j + 1 + length <= bytes.count {
-                    let candidate = Data(bytes[j + 1 ..< j + 1 + length])
-                    if let str = String(data: candidate, encoding: .utf8),
-                       str.allSatisfy({ $0.asciiValue.map { $0 >= 0x20 && $0 < 0x7F } ?? false }),
-                       str.count > 1
-                    {
-                        return str
-                    }
-                }
-            }
-        }
-        return nil
     }
 
     private func parseValue(from output: String, pattern: String) -> String? {

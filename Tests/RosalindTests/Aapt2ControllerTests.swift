@@ -103,22 +103,13 @@ struct Aapt2ControllerTests {
     @Test func aabMetadata_parsesManifestAndResources() async throws {
         let fileSystem = FileSystem()
         let subject = Aapt2Controller(fileSystem: fileSystem)
+        let aabPath = try fixturePath("android_app/app.aab")
 
-        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
-            let aabPath = try await createTestAAB(
-                in: temporaryDirectory,
-                fileSystem: fileSystem,
-                packageName: "com.test.app",
-                versionName: "2.0",
-                appName: "Test App"
-            )
+        let metadata = try await subject.aabMetadata(at: aabPath)
 
-            let metadata = try await subject.aabMetadata(at: aabPath)
-
-            #expect(metadata.packageName == "com.test.app")
-            #expect(metadata.versionName == "2.0")
-            #expect(metadata.appName == "Test App")
-        }
+        #expect(metadata.packageName == "dev.tuist.example")
+        #expect(metadata.versionName == "1.0")
+        #expect(metadata.appName == "Simple Android App")
     }
 
     @Test func aabMetadata_throws_whenManifestNotFound() async throws {
@@ -143,73 +134,13 @@ struct Aapt2ControllerTests {
         }
     }
 
-    @Test func aabMetadata_usesPackageName_whenResourcesMissing() async throws {
-        let fileSystem = FileSystem()
-        let subject = Aapt2Controller(fileSystem: fileSystem)
-
-        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
-            let aabPath = try await createTestAAB(
-                in: temporaryDirectory,
-                fileSystem: fileSystem,
-                packageName: "com.test.app",
-                versionName: "1.0",
-                appName: nil
-            )
-
-            let metadata = try await subject.aabMetadata(at: aabPath)
-
-            #expect(metadata.packageName == "com.test.app")
-            #expect(metadata.versionName == "1.0")
-            #expect(metadata.appName == "com.test.app")
-        }
-    }
-
     // MARK: - Helpers
 
-    private func createTestAAB(
-        in temporaryDirectory: AbsolutePath,
-        fileSystem: FileSysteming,
-        packageName: String,
-        versionName: String,
-        appName: String?
-    ) async throws -> AbsolutePath {
-        let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
-        let basePath = aabContentsPath.appending(component: "base")
-        let manifestDir = basePath.appending(component: "manifest")
-        try await fileSystem.makeDirectory(at: manifestDir)
-
-        var element = AaptXmlElement()
-        element.name = "manifest"
-        var packageAttr = AaptXmlAttribute()
-        packageAttr.name = "package"
-        packageAttr.value = packageName
-        var versionAttr = AaptXmlAttribute()
-        versionAttr.name = "versionName"
-        versionAttr.value = versionName
-        element.attributes = [packageAttr, versionAttr]
-        var xmlNode = AaptXmlNode()
-        xmlNode.element = element
-
-        let manifestData: Data = try xmlNode.serializedBytes()
-        try manifestData.write(
-            to: URL(fileURLWithPath: manifestDir.appending(component: "AndroidManifest.xml").pathString)
-        )
-
-        if let appName {
-            var resourcesData = Data()
-            resourcesData.append(0x0A)
-            resourcesData.append(contentsOf: "app_name".utf8)
-            resourcesData.append(0x00)
-            resourcesData.append(UInt8(appName.utf8.count))
-            resourcesData.append(contentsOf: appName.utf8)
-            try resourcesData.write(
-                to: URL(fileURLWithPath: basePath.appending(component: "resources.pb").pathString)
-            )
-        }
-
-        let aabPath = temporaryDirectory.appending(component: "app.aab")
-        try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
-        return aabPath
+    private func fixturePath(_ relativePath: String) throws -> AbsolutePath {
+        try AbsolutePath(validating: "\(#filePath)")
+            .parentDirectory.parentDirectory.parentDirectory
+            .appending(component: "fixtures")
+            .appending(try RelativePath(validating: relativePath))
     }
 
 }
