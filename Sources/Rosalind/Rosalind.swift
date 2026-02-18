@@ -260,6 +260,10 @@ public struct Rosalind: Rosalindable {
         let artifactType = try artifactType(for: artifact, isAndroid: isAndroid)
         switch artifactType {
         #if os(macOS)
+            // On iOS, .car files are opaque compiled containers that embed images.
+            // assetutil breaks them down into individual renditions with sizes.
+            // On Android, resource files (PNGs, XMLs, etc.) are already separate
+            // files under res/ — resources.pb is just an index, not a container.
             case .asset where !isAndroid:
                 let infos = try await assetUtilController.info(at: artifact.path)
                 children = try infos.compactMap { info -> AppBundleArtifact? in
