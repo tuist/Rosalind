@@ -59,7 +59,7 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
                 .concatenatedString()
         } catch {
             await Self.poolLock.release()
-            throw AndroidBundleMetadataServiceError.aapt2NotFound
+            throw error
         }
 
         await Self.poolLock.release()
@@ -134,7 +134,15 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
                 return aapt2.pathString
             }
         }
-        return "aapt2"
+        if let path = try? await commandRunner
+            .run(arguments: ["/usr/bin/env", "which", "aapt2"])
+            .concatenatedString()
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !path.isEmpty
+        {
+            return path
+        }
+        throw AndroidBundleMetadataServiceError.aapt2NotFound
     }
 
     private func parseValue(from output: String, pattern: String) -> String? {
