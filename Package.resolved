@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/FileSystem.git",
       "state" : {
-        "revision" : "81fd22b459cf996b0845ffb8da35240ee473df39",
-        "version" : "0.15.2"
+        "revision" : "79cce795d64ef35debb8148378b3675edf9a9cfb",
+        "version" : "0.15.3"
       }
     },
     {
