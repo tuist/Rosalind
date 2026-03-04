@@ -5,11 +5,15 @@ import Mockable
 import Path
 
 enum AndroidBundleMetadataServiceError: LocalizedError {
+    case aapt2NotFound
     case parsingFailed(AbsolutePath)
     case manifestNotFound(AbsolutePath)
 
     var errorDescription: String? {
         switch self {
+        case .aapt2NotFound:
+            return
+                "aapt2 is required to read APK metadata. Install it via the Android SDK (build-tools) and ensure ANDROID_HOME or ANDROID_SDK_ROOT is set, or that aapt2 is in your PATH."
         case let .parsingFailed(path):
             return "Failed to parse Android bundle metadata from \(path.pathString)."
         case let .manifestNotFound(path):
@@ -45,11 +49,13 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     }
 
     func apkMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata {
+        let aapt2 = try await resolveAapt2Path()
+
         await Self.poolLock.acquire()
 
         let output: String
         do {
-            output = try await commandRunner.run(arguments: ["aapt2", "dump", "badging", path.pathString])
+            output = try await commandRunner.run(arguments: [aapt2, "dump", "badging", path.pathString])
                 .concatenatedString()
         } catch {
             await Self.poolLock.release()
@@ -112,6 +118,31 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
                 appName: appName ?? packageName
             )
         }
+    }
+
+    private func resolveAapt2Path() async throws -> String {
+        let environment = ProcessInfo.processInfo.environment
+        for envVar in ["ANDROID_HOME", "ANDROID_SDK_ROOT"] {
+            guard let value = environment[envVar], !value.isEmpty else { continue }
+            let buildToolsDir: AbsolutePath
+            do {
+                buildToolsDir = try AbsolutePath(validating: value).appending(component: "build-tools")
+            } catch { continue }
+            guard try await fileSystem.exists(buildToolsDir) else { continue }
+            let aapt2Paths = try await fileSystem.glob(directory: buildToolsDir, include: ["*/aapt2"]).collect()
+            if let aapt2 = aapt2Paths.sorted(by: { $0.pathString > $1.pathString }).first {
+                return aapt2.pathString
+            }
+        }
+        if let path = try? await commandRunner
+            .run(arguments: ["/usr/bin/env", "which", "aapt2"])
+            .concatenatedString()
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+            !path.isEmpty
+        {
+            return path
+        }
+        throw AndroidBundleMetadataServiceError.aapt2NotFound
     }
 
     private func parseValue(from output: String, pattern: String) -> String? {

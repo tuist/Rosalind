@@ -25,7 +25,7 @@ struct AndroidBundleMetadataServiceTests {
 
         given(commandRunner)
             .run(
-                arguments: .value(["aapt2", "dump", "badging", path.pathString]),
+                arguments: .any,
                 environment: .any,
                 workingDirectory: .any
             )
@@ -52,7 +52,7 @@ struct AndroidBundleMetadataServiceTests {
 
         given(commandRunner)
             .run(
-                arguments: .value(["aapt2", "dump", "badging", path.pathString]),
+                arguments: .any,
                 environment: .any,
                 workingDirectory: .any
             )
@@ -79,7 +79,7 @@ struct AndroidBundleMetadataServiceTests {
 
         given(commandRunner)
             .run(
-                arguments: .value(["aapt2", "dump", "badging", path.pathString]),
+                arguments: .any,
                 environment: .any,
                 workingDirectory: .any
             )
