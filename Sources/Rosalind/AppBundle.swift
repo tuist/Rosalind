@@ -42,17 +42,20 @@ struct AppBundle: Equatable {
             case name = "CFBundleName"
             case bundleId = "CFBundleIdentifier"
             case minimumOSVersion = "MinimumOSVersion"
+            case minimumSystemVersion = "LSMinimumSystemVersion"
             case supportedPlatforms = "CFBundleSupportedPlatforms"
         }
 
         init(from decoder: any Decoder) throws {
             let container: KeyedDecodingContainer<AppBundle.InfoPlist.CodingKeys> = try decoder
                 .container(keyedBy: AppBundle.InfoPlist.CodingKeys.self)
-            version = try container.decode(String.self, forKey: AppBundle.InfoPlist.CodingKeys.version)
-            name = try container.decode(String.self, forKey: AppBundle.InfoPlist.CodingKeys.name)
-            bundleId = try container.decode(String.self, forKey: AppBundle.InfoPlist.CodingKeys.bundleId)
-            minimumOSVersion = try container.decode(String.self, forKey: AppBundle.InfoPlist.CodingKeys.minimumOSVersion)
-            supportedPlatforms = try container.decode([String].self, forKey: AppBundle.InfoPlist.CodingKeys.supportedPlatforms)
+            version = try container.decode(String.self, forKey: .version)
+            name = try container.decode(String.self, forKey: .name)
+            bundleId = try container.decode(String.self, forKey: .bundleId)
+            // iOS/tvOS/watchOS/visionOS use MinimumOSVersion, macOS uses LSMinimumSystemVersion
+            minimumOSVersion = try container.decodeIfPresent(String.self, forKey: .minimumOSVersion)
+                ?? container.decode(String.self, forKey: .minimumSystemVersion)
+            supportedPlatforms = try container.decode([String].self, forKey: .supportedPlatforms)
         }
     }
 }
