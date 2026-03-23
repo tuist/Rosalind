@@ -27,7 +27,7 @@ struct RosalindAcceptanceTests {
                 )
             }
         }
-        
+
         @Test func ios_app() async throws {
             try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
                 // When
