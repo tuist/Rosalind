@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.53] - 2026-03-23
+### Details
+#### Fix
+- Support macOS app bundle layout for Info.plist loading by @lechuckcaptain in [#446](https://github.com/tuist/Rosalind/pull/446)
+
+## New Contributors
+* @lechuckcaptain made their first contribution in [#446](https://github.com/tuist/Rosalind/pull/446)
 ## [0.7.52] - 2026-03-23
 ### Details
 #### Chore
@@ -1959,6 +1966,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.7.53]: https://github.com/tuist/Rosalind/compare/0.7.52..0.7.53
 [0.7.52]: https://github.com/tuist/Rosalind/compare/0.7.51..0.7.52
 [0.7.51]: https://github.com/tuist/Rosalind/compare/0.7.50..0.7.51
 [0.7.50]: https://github.com/tuist/Rosalind/compare/0.7.49..0.7.50
