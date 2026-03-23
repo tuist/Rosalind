@@ -12,6 +12,22 @@ struct RosalindAcceptanceTests {
 
     // We run `assetutils` as part of these acceptance tests, so these won't run on Linux
     #if os(macOS)
+        @Test func macos_app() async throws {
+            try await withFixtureInTemporaryDirectory("macos_app") { _, fixtureDirectory in
+                // When
+                let got = try await subject
+                    .analyzeAppBundle(
+                        at: fixtureDirectory.appending(component: "App.app")
+                    )
+
+                // Then
+                assertSnapshot(
+                    of: got,
+                    as: .rosalind()
+                )
+            }
+        }
+
         @Test func ios_app() async throws {
             try await withFixtureInTemporaryDirectory("ios_app") { _, fixtureDirectory in
                 // When
