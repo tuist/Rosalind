@@ -42,17 +42,6 @@
     struct AssetUtilController: AssetUtilControlling {
         @TaskLocal static var poolLock: PoolLock = .init(capacity: 5)
 
-        static func acquiringPoolLock(_ closure: () async throws -> Void) async throws {
-            await poolLock.acquire()
-            do {
-                try await closure()
-            } catch {
-                await poolLock.release()
-                throw error
-            }
-            await poolLock.release()
-        }
-
         private let commandRunner: CommandRunning
         private let jsonDecoder = JSONDecoder()
 
@@ -63,8 +52,14 @@
         func info(at path: AbsolutePath) async throws -> [AssetInfo] {
             await Self.poolLock.acquire()
 
-            let output = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
-                .concatenatedString()
+            let output: String
+            do {
+                output = try await commandRunner.run(arguments: ["/usr/bin/xcrun", "assetutil", "--info", path.pathString])
+                    .concatenatedString()
+            } catch {
+                await Self.poolLock.release()
+                throw error
+            }
 
             await Self.poolLock.release()
 
