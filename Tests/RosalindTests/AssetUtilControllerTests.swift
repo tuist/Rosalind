@@ -360,5 +360,58 @@
                 return false
             }
         }
+
+        /// With pool capacity 1, a leaked lock after the first failure would block the second `info` forever on `acquire`.
+        @Test func info_returnsAssetInfoForSecondPath_afterFirstPathCommandFails_whenPoolCapacityIsOne() async throws {
+            let failingPath = try AbsolutePath(validating: "/path/to/failing.asset.car")
+            let okPath = try AbsolutePath(validating: "/path/to/ok.asset.car")
+            let commandError = CommandError.terminated(1, stderr: "Command failed")
+            let isolatedLock = PoolLock(capacity: 1)
+
+            try await AssetUtilController.$poolLock.withValue(isolatedLock) {
+                given(commandRunner)
+                    .run(
+                        arguments: .value(["/usr/bin/xcrun", "assetutil", "--info", failingPath.pathString]),
+                        environment: .any,
+                        workingDirectory: .any
+                    )
+                    .willReturn(
+                        AsyncThrowingStream { continuation in
+                            continuation.finish(throwing: commandError)
+                        }
+                    )
+
+                given(commandRunner)
+                    .run(
+                        arguments: .value(["/usr/bin/xcrun", "assetutil", "--info", okPath.pathString]),
+                        environment: .any,
+                        workingDirectory: .any
+                    )
+                    .willReturn(
+                        AsyncThrowingStream { continuation in
+                            continuation.yield(CommandEvent.standardOutput(Array(assetInfoJSON.utf8)))
+                            continuation.finish()
+                        }
+                    )
+
+                await #expect {
+                    try await subject.info(at: failingPath)
+                } throws: { error in
+                    if let commandError = error as? CommandError,
+                       case let .terminated(code, stderr) = commandError
+                    {
+                        return code == 1 && stderr == "Command failed"
+                    }
+                    return false
+                }
+
+                let result = try await subject.info(at: okPath)
+
+                #expect(result.count == 9)
+                #expect(result[1].sizeOnDisk == 3590)
+                #expect(result[1].sha1Digest == "2C428DBA40B27BFB34BE8D92568563C224F94E43EB75C16D099378D022947D9F")
+                #expect(result[1].renditionName == "114.png")
+            }
+        }
     }
 #endif

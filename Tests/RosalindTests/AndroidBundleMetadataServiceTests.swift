@@ -98,6 +98,68 @@ struct AndroidBundleMetadataServiceTests {
         }
     }
 
+    /// With pool capacity 1, a leaked lock after `dump badging` fails would block the next `apkMetadata` on `acquire`.
+    @Test func apkMetadata_returnsMetadataForSecondPath_afterFirstPathCommandFails_whenPoolCapacityIsOne() async throws {
+        let failingPath = try AbsolutePath(validating: "/path/to/failing.apk")
+        let okPath = try AbsolutePath(validating: "/path/to/ok.apk")
+        let commandError = CommandError.terminated(1, stderr: "badging failed")
+        let commandRunner = MockCommandRunning()
+        let subject = AndroidBundleMetadataService(
+            commandRunner: commandRunner
+        )
+        let isolatedLock = PoolLock(capacity: 1)
+
+        let okOutput = """
+        package: name='com.example.app' versionCode='1' versionName='1.0.0'
+        sdkVersion:'21'
+        application-label:'My App'
+        """
+
+        try await AndroidBundleMetadataService.$poolLock.withValue(isolatedLock) {
+            given(commandRunner)
+                .run(
+                    arguments: .any,
+                    environment: .any,
+                    workingDirectory: .any
+                )
+                .willReturn(
+                    AsyncThrowingStream { continuation in
+                        continuation.finish(throwing: commandError)
+                    }
+                )
+
+            given(commandRunner)
+                .run(
+                    arguments: .any,
+                    environment: .any,
+                    workingDirectory: .any
+                )
+                .willReturn(
+                    AsyncThrowingStream { continuation in
+                        continuation.yield(CommandEvent.standardOutput(Array(okOutput.utf8)))
+                        continuation.finish()
+                    }
+                )
+
+            await #expect {
+                try await subject.apkMetadata(at: failingPath)
+            } throws: { error in
+                if let commandError = error as? CommandError,
+                   case let .terminated(code, stderr) = commandError
+                {
+                    return code == 1 && stderr == "badging failed"
+                }
+                return false
+            }
+
+            let metadata = try await subject.apkMetadata(at: okPath)
+
+            #expect(metadata.packageName == "com.example.app")
+            #expect(metadata.versionName == "1.0.0")
+            #expect(metadata.appName == "My App")
+        }
+    }
+
     // MARK: - AAB Metadata
 
     @Test func aabMetadata_parsesManifestAndResources() async throws {
