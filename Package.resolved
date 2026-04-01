@@ -1,5 +1,5 @@
 {
-  "originHash" : "78d2439469d5c09654ffe305958d593df3471a71d87bb0bed095d139704f3ea0",
+  "originHash" : "f7aa27134745bf5694bd7fcd5480300d0cf1f6b42427aaa7e04d211a8405a0a9",
   "pins" : [
     {
       "identity" : "command",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/FileSystem.git",
       "state" : {
-        "revision" : "948da36453cbf02b61de6345d3154441e82d7687",
-        "version" : "0.15.19"
+        "revision" : "28e4564d6a469e023ed738e8b819ef2273e75c61",
+        "version" : "0.15.26"
       }
     },
     {
@@ -35,6 +35,15 @@
       "state" : {
         "revision" : "bd20509c34ca3205003677747ad8dcb70d18b7ca",
         "version" : "0.6.2"
+      }
+    },
+    {
+      "identity" : "objectarchivekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p-x9/ObjectArchiveKit.git",
+      "state" : {
+        "revision" : "c47d1b2df06168bacb396a1765ae5bf7fa2868fb",
+        "version" : "0.3.0"
       }
     },
     {
@@ -186,8 +195,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/ZIPFoundation",
       "state" : {
-        "revision" : "e9b1917bd4d7d050e0ff4ec157b5d6e253c84385",
-        "version" : "0.9.20"
+        "revision" : "a0e902e08e7a9ff3f0c1d109dc331b20cd498bb5",
+        "version" : "0.9.21"
       }
     }
   ],
