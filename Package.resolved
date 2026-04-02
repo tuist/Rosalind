@@ -1,5 +1,5 @@
 {
-  "originHash" : "f7aa27134745bf5694bd7fcd5480300d0cf1f6b42427aaa7e04d211a8405a0a9",
+  "originHash" : "6b9e4dc9773fc876c0c3d48c6cb72068f7ab48bf13aa691f73835bed55c2e859",
   "pins" : [
     {
       "identity" : "command",
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/MachOKit",
       "state" : {
-        "revision" : "25e56cbb2865ef4d00ea4f15501f29f65c4ca189",
-        "version" : "0.47.0"
+        "revision" : "053c053cdcd29c67b49a5de0fe984ed684ba6549",
+        "version" : "0.48.0"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/ObjectArchiveKit.git",
       "state" : {
-        "revision" : "c47d1b2df06168bacb396a1765ae5bf7fa2868fb",
-        "version" : "0.3.0"
+        "revision" : "96d782a576273b73b277b577943a2a25b00b919e",
+        "version" : "0.5.0"
       }
     },
     {
@@ -132,8 +132,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-log",
       "state" : {
-        "revision" : "bbd81b6725ae874c69e9b8c8804d462356b55523",
-        "version" : "1.10.1"
+        "revision" : "8c0f217f01000dd30f60d6e536569ad4e74291f9",
+        "version" : "1.11.0"
       }
     },
     {
