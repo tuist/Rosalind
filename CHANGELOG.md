@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.68] - 2026-04-02
+### Details
+#### Chore
+- Update dependency p-x9/machokit to from: "0.48.0" by @renovate[bot] in [#473](https://github.com/tuist/Rosalind/pull/473)
+
 ## [0.7.67] - 2026-04-02
 ### Details
 #### Chore
@@ -2036,6 +2041,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update dependency tuist to v4.23.0 by @renovate[bot]
 - Update dependency tuist/path to from: "0.3.2" by @renovate[bot]
 
+[0.7.68]: https://github.com/tuist/Rosalind/compare/0.7.67..0.7.68
 [0.7.67]: https://github.com/tuist/Rosalind/compare/0.7.66..0.7.67
 [0.7.66]: https://github.com/tuist/Rosalind/compare/0.7.65..0.7.66
 [0.7.65]: https://github.com/tuist/Rosalind/compare/0.7.64..0.7.65
