@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p-x9/MachOKit",
       "state" : {
-        "revision" : "053c053cdcd29c67b49a5de0fe984ed684ba6549",
-        "version" : "0.48.0"
+        "revision" : "ff3c258b4b676cbd873b03ee3f11e3bc2b11d5af",
+        "version" : "0.49.0"
       }
     },
     {
