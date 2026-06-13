@@ -3,4 +3,4 @@
 "pnpm" = "10.34.3"
 "nodejs" = "22.22.3"
 "swiftlint" = "0.63.3"
-"swiftformat" = "0.52.10"
+"swiftformat" = "0.61.1"
