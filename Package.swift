@@ -26,7 +26,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.15.1")),
         .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.50.0")),
         .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.6.2")),
-        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.37.0")),
+        .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.38.1")),
     ],
     targets: [
         .target(
