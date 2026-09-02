@@ -21,11 +21,15 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        swift: ["6.0"]
+        swift: ["6.2"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Select Xcode
+        if: runner.os == 'macOS'
+        run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
       - uses: SwiftyLab/setup-swift@latest
+        if: runner.os == 'Linux'
         with:
           swift-version: ${{ matrix.swift }}
       - uses: jdx/mise-action@v2
@@ -45,15 +49,11 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        swift: ["6.0"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
-      - uses: SwiftyLab/setup-swift@latest
-        with:
-          swift-version: ${{ matrix.swift }}
       - uses: jdx/mise-action@v2
         if: runner.os == 'Linux' || runner.os == 'macOS'
         with:
