@@ -276,3 +276,7 @@ docs/.vitepress/cache
 .swiftpm/**/*.xcworkspace/
 .swiftpm/**/*.xcodeproj/
 .claude
+
+### Android fixture ###
+.gradle/
+local.properties
