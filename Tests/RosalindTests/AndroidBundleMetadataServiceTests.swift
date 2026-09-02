@@ -3,6 +3,7 @@ import FileSystem
 import Foundation
 import Mockable
 import Path
+import SwiftProtobuf
 import Testing
 
 @testable import Rosalind
@@ -196,7 +197,212 @@ struct AndroidBundleMetadataServiceTests {
         }
     }
 
+    @Test func aabMetadata_resolvesLabelReference_whenADependencyShipsItsOwnAppNameString() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
+            let aabPath = try await makeBundle(
+                manifest: manifest(label: labelAttribute(resourceID: 0x7F09_0001)),
+                resourceTable: resourceTable(stringEntries: [
+                    stringEntry(entryID: 1, name: "brand_name", values: [(locale: "", value: "Example App")]),
+                    stringEntry(entryID: 2, name: "app_name", values: [(locale: "", value: "Dependency Default")]),
+                ]),
+                in: temporaryDirectory,
+                fileSystem: fileSystem
+            )
+
+            let metadata = try await subject.aabMetadata(at: aabPath)
+
+            #expect(metadata.packageName == "dev.tuist.example")
+            #expect(metadata.versionName == "1.0")
+            #expect(metadata.appName == "Example App")
+        }
+    }
+
+    @Test func aabMetadata_usesLiteralLabel_whenLabelIsNotAResourceReference() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
+            let aabPath = try await makeBundle(
+                manifest: manifest(label: labelAttribute(literal: "Example App")),
+                resourceTable: resourceTable(stringEntries: [
+                    stringEntry(entryID: 1, name: "app_name", values: [(locale: "", value: "Dependency Default")]),
+                ]),
+                in: temporaryDirectory,
+                fileSystem: fileSystem
+            )
+
+            let metadata = try await subject.aabMetadata(at: aabPath)
+
+            #expect(metadata.appName == "Example App")
+        }
+    }
+
+    @Test func aabMetadata_usesDefaultConfigurationValue_whenLabelIsLocalized() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
+            let aabPath = try await makeBundle(
+                manifest: manifest(label: labelAttribute(resourceID: 0x7F09_0001)),
+                resourceTable: resourceTable(stringEntries: [
+                    stringEntry(
+                        entryID: 1,
+                        name: "brand_name",
+                        values: [(locale: "fr", value: "Exemple"), (locale: "", value: "Example App")]
+                    ),
+                ]),
+                in: temporaryDirectory,
+                fileSystem: fileSystem
+            )
+
+            let metadata = try await subject.aabMetadata(at: aabPath)
+
+            #expect(metadata.appName == "Example App")
+        }
+    }
+
+    @Test func aabMetadata_fallsBackToPackageName_whenLabelIsMissing() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "test") { temporaryDirectory in
+            let aabPath = try await makeBundle(
+                manifest: manifest(label: nil),
+                resourceTable: nil,
+                in: temporaryDirectory,
+                fileSystem: fileSystem
+            )
+
+            let metadata = try await subject.aabMetadata(at: aabPath)
+
+            #expect(metadata.appName == "dev.tuist.example")
+        }
+    }
+
     // MARK: - Helpers
+
+    private func makeBundle(
+        manifest: Aapt_Pb_XmlNode,
+        resourceTable: Aapt_Pb_ResourceTable?,
+        in temporaryDirectory: AbsolutePath,
+        fileSystem: FileSysteming
+    ) async throws -> AbsolutePath {
+        let basePath = temporaryDirectory.appending(components: "aab-contents", "base")
+        try await fileSystem.makeDirectory(at: basePath.appending(component: "manifest"))
+        try manifest.serializedData()
+            .write(to: URL(fileURLWithPath: basePath.appending(components: "manifest", "AndroidManifest.xml").pathString))
+        if let resourceTable {
+            try resourceTable.serializedData()
+                .write(to: URL(fileURLWithPath: basePath.appending(component: "resources.pb").pathString))
+        }
+
+        let aabPath = temporaryDirectory.appending(component: "app.aab")
+        try await fileSystem.zipFileOrDirectoryContent(at: basePath.parentDirectory, to: aabPath)
+        return aabPath
+    }
+
+    private func manifest(label: Aapt_Pb_XmlAttribute?) -> Aapt_Pb_XmlNode {
+        var application = Aapt_Pb_XmlElement()
+        application.name = "application"
+        application.attribute = [label].compactMap { $0 }
+
+        var applicationNode = Aapt_Pb_XmlNode()
+        applicationNode.element = application
+
+        var packageAttribute = Aapt_Pb_XmlAttribute()
+        packageAttribute.name = "package"
+        packageAttribute.value = "dev.tuist.example"
+
+        var versionNameAttribute = Aapt_Pb_XmlAttribute()
+        versionNameAttribute.name = "versionName"
+        versionNameAttribute.value = "1.0"
+
+        var element = Aapt_Pb_XmlElement()
+        element.name = "manifest"
+        element.attribute = [packageAttribute, versionNameAttribute]
+        element.child = [applicationNode]
+
+        var node = Aapt_Pb_XmlNode()
+        node.element = element
+        return node
+    }
+
+    private func labelAttribute(resourceID: UInt32) -> Aapt_Pb_XmlAttribute {
+        var reference = Aapt_Pb_Reference()
+        reference.id = resourceID
+
+        var item = Aapt_Pb_Item()
+        item.ref = reference
+
+        var attribute = labelAttribute(literal: "@string/brand_name")
+        attribute.compiledItem = item
+        return attribute
+    }
+
+    private func labelAttribute(literal value: String) -> Aapt_Pb_XmlAttribute {
+        var attribute = Aapt_Pb_XmlAttribute()
+        attribute.namespaceUri = "http://schemas.android.com/apk/res/android"
+        attribute.name = "label"
+        attribute.value = value
+        return attribute
+    }
+
+    private func stringEntry(
+        entryID: UInt32,
+        name: String,
+        values: [(locale: String, value: String)]
+    ) -> Aapt_Pb_Entry {
+        var identifier = Aapt_Pb_EntryId()
+        identifier.id = entryID
+
+        var entry = Aapt_Pb_Entry()
+        entry.entryID = identifier
+        entry.name = name
+        entry.configValue = values.map { locale, value in
+            var string = Aapt_Pb_String()
+            string.value = value
+
+            var item = Aapt_Pb_Item()
+            item.str = string
+
+            var entryValue = Aapt_Pb_Value()
+            entryValue.item = item
+
+            var configuration = Aapt_Pb_Configuration()
+            configuration.locale = locale
+
+            var configValue = Aapt_Pb_ConfigValue()
+            configValue.config = configuration
+            configValue.value = entryValue
+            return configValue
+        }
+        return entry
+    }
+
+    private func resourceTable(stringEntries: [Aapt_Pb_Entry]) -> Aapt_Pb_ResourceTable {
+        var typeIdentifier = Aapt_Pb_TypeId()
+        typeIdentifier.id = 9
+
+        var type = Aapt_Pb_Type()
+        type.typeID = typeIdentifier
+        type.name = "string"
+        type.entry = stringEntries
+
+        var packageIdentifier = Aapt_Pb_PackageId()
+        packageIdentifier.id = 127
+
+        var package = Aapt_Pb_Package()
+        package.packageID = packageIdentifier
+        package.packageName = "dev.tuist.example"
+        package.type = [type]
+
+        var resourceTable = Aapt_Pb_ResourceTable()
+        resourceTable.package = [package]
+        return resourceTable
+    }
 
     private func fixturePath(_ relativePath: String) throws -> AbsolutePath {
         try AbsolutePath(validating: "\(#filePath)")

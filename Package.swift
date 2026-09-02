@@ -49,6 +49,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "Mockable", package: "Mockable"),
+                .product(name: "SwiftProtobuf", package: "swift-protobuf"),
                 "Rosalind",
             ]
         ),

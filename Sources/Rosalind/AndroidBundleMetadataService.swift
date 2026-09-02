@@ -37,6 +37,8 @@ protocol AndroidBundleMetadataServicing: Sendable {
 struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     @TaskLocal static var poolLock: PoolLock = .init(capacity: 5)
 
+    private static let androidNamespaceURI = "http://schemas.android.com/apk/res/android"
+
     private let commandRunner: CommandRunning
     private let fileSystem: FileSysteming
 
@@ -99,18 +101,14 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
                 throw AndroidBundleMetadataServiceError.parsingFailed(manifestPath)
             }
 
-            var appName: String?
+            var resourceTable: Aapt_Pb_ResourceTable?
             let resourcesPath = unzippedPath.appending(components: "base", "resources.pb")
             if try await fileSystem.exists(resourcesPath) {
                 let resourcesData = try await fileSystem.readFile(at: resourcesPath)
-                let resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
-                appName = resourceTable.package
-                    .flatMap(\.type)
-                    .flatMap(\.entry)
-                    .first(where: { $0.name == "app_name" })?
-                    .configValue.first?
-                    .value.item.str.value
+                resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
             }
+
+            let appName = applicationLabel(in: xmlNode, resourceTable: resourceTable)
 
             return AndroidBundleMetadata(
                 packageName: packageName,
@@ -118,6 +116,40 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
                 appName: appName ?? packageName
             )
         }
+    }
+
+    private func applicationLabel(
+        in manifest: Aapt_Pb_XmlNode,
+        resourceTable: Aapt_Pb_ResourceTable?
+    ) -> String? {
+        guard let label = manifest.element.child
+            .first(where: { $0.element.name == "application" })?
+            .element.attribute
+            .first(where: { $0.name == "label" && $0.namespaceUri == Self.androidNamespaceURI })
+        else { return nil }
+
+        guard case let .ref(reference) = label.compiledItem.value else {
+            return label.value.isEmpty ? nil : label.value
+        }
+
+        guard let resourceTable else { return nil }
+        return string(withResourceID: reference.id, in: resourceTable)
+    }
+
+    private func string(withResourceID resourceID: UInt32, in resourceTable: Aapt_Pb_ResourceTable) -> String? {
+        guard let entry = resourceTable.package
+            .first(where: { $0.packageID.id == (resourceID >> 24) & 0xFF })?
+            .type.first(where: { $0.typeID.id == (resourceID >> 16) & 0xFF })?
+            .entry.first(where: { $0.entryID.id == resourceID & 0xFFFF })
+        else { return nil }
+
+        guard let configValue = entry.configValue.first(where: { $0.config.locale.isEmpty })
+            ?? entry.configValue.first,
+            case let .str(string) = configValue.value.item.value,
+            !string.value.isEmpty
+        else { return nil }
+
+        return string.value
     }
 
     private func resolveAapt2Path() async throws -> String {
