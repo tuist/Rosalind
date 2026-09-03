@@ -86,8 +86,23 @@ struct RosalindAcceptanceTests {
                 )
 
             // Then
+            // bundletool signs the splits it builds, and the signature it produces depends on the keystore of
+            // the machine running it. On a fixture this small the signature outweighs the content, so no exact
+            // size is portable across environments. `RosalindTests.aabBundle` covers that the reported size is
+            // the one bundletool measured rather than the size of the `.aab` on disk.
+            #expect(try #require(got.downloadSize) > 0)
+
             assertSnapshot(
-                of: got,
+                of: AppBundleReport(
+                    bundleId: got.bundleId,
+                    name: got.name,
+                    type: got.type,
+                    installSize: got.installSize,
+                    downloadSize: nil,
+                    platforms: got.platforms,
+                    version: got.version,
+                    artifacts: got.artifacts
+                ),
                 as: .rosalind()
             )
         }
