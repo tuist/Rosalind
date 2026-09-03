@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.96] - 2026-09-03
+### Details
+#### <!-- 1 -->🐛 Bug Fixes
+- Resolve the AAB app name from the manifest's android:label by @fortmarek in [#518](https://github.com/tuist/Rosalind/pull/518)
+
 ## [0.7.95] - 2026-09-02
 ### Details
 #### <!-- 7 -->⚙️ Miscellaneous Tasks
@@ -94,6 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## New Contributors
 * @renovate[bot] made their first contribution in [#5](https://github.com/tuist/Rosalind/pull/5)
 * @pepicrft made their first contribution in [#3](https://github.com/tuist/Rosalind/pull/3)
+[0.7.96]: https://github.com/tuist/Rosalind/compare/0.7.95..0.7.96
 [0.7.95]: https://github.com/tuist/Rosalind/compare/0.7.94..0.7.95
 [0.7.73]: https://github.com/tuist/Rosalind/compare/0.7.72..0.7.73
 [0.7.64]: https://github.com/tuist/Rosalind/compare/0.7.63..0.7.64
