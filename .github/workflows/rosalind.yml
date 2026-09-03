@@ -54,6 +54,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
+      - name: Install bundletool
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/bundletool.jar" \
+            https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+          echo "BUNDLETOOL_PATH=$RUNNER_TEMP/bundletool.jar" >> "$GITHUB_ENV"
       - uses: jdx/mise-action@v2
         if: runner.os == 'Linux' || runner.os == 'macOS'
         with:

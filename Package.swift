@@ -27,7 +27,6 @@ let package = Package(
         .package(url: "https://github.com/p-x9/MachOKit", .upToNextMajor(from: "0.50.0")),
         .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.6.2")),
         .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.38.1")),
-        .package(url: "https://github.com/tuist/ZIPFoundation", .upToNextMajor(from: "0.9.21")),
     ],
     targets: [
         .target(
@@ -39,7 +38,6 @@ let package = Package(
                 .product(name: "Command", package: "Command"),
                 .product(name: "MachOKit", package: "MachOKit", condition: .when(platforms: [.macOS])),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
-                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
@@ -51,7 +49,6 @@ let package = Package(
             dependencies: [
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "Mockable", package: "Mockable"),
-                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
                 "Rosalind",
             ]
         ),

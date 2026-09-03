@@ -143,25 +143,20 @@ public struct Rosalind: Rosalindable {
 
     private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
-            let unzippedPath = temporaryDirectory.appending(component: path.basename)
-            try await fileSystem.unzip(path, to: unzippedPath)
-
             let metadata: AndroidBundleMetadata
-            let split: AndroidAppBundleSplit?
+            let contentPath: AbsolutePath
+            let downloadSize: Int
+
             if path.extension == "aab" {
                 metadata = try await androidBundleMetadataService.aabMetadata(at: path)
-                split = try await androidAppBundleSplitService.split(of: path, unzippedAt: unzippedPath)
+                let split = try await androidAppBundleSplitService.split(of: path, in: temporaryDirectory)
+                contentPath = try await unzipSplits(split, packageName: metadata.packageName, in: temporaryDirectory)
+                downloadSize = split.downloadSize
             } else {
                 metadata = try await androidBundleMetadataService.apkMetadata(at: path)
-                split = nil
-            }
-
-            let contentPath: AbsolutePath
-            if let split {
-                contentPath = temporaryDirectory.appending(component: metadata.packageName)
-                try await androidAppBundleSplitService.collect(split, from: unzippedPath, into: contentPath)
-            } else {
-                contentPath = unzippedPath
+                contentPath = temporaryDirectory.appending(component: path.basename)
+                try await fileSystem.unzip(path, to: contentPath)
+                downloadSize = try fileSize(at: path)
             }
 
             let artifactPath = try await pathToArtifact(contentPath)
@@ -171,13 +166,10 @@ public struct Rosalind: Rosalindable {
                 isAndroid: true
             )
 
-            let downloadSize = try split?.downloadSize ?? fileSize(at: path)
-            let bundleType: AppBundleReport.BundleType = path.extension == "aab" ? .aab : .apk
-
             return AppBundleReport(
                 bundleId: metadata.packageName,
                 name: metadata.appName,
-                type: bundleType,
+                type: path.extension == "aab" ? .aab : .apk,
                 installSize: artifact.size,
                 downloadSize: downloadSize,
                 platforms: ["android"],
@@ -185,6 +177,23 @@ public struct Rosalind: Rosalindable {
                 artifacts: artifact.children ?? []
             )
         }
+    }
+
+    /// Unpacks each split the device installs under its own name, so that the install size and the artifact
+    /// breakdown describe the same bytes as the download size, and so that the splits stay distinguishable.
+    private func unzipSplits(
+        _ split: AndroidAppBundleSplit,
+        packageName: String,
+        in temporaryDirectory: AbsolutePath
+    ) async throws -> AbsolutePath {
+        let contentPath = temporaryDirectory.appending(component: packageName)
+        try await fileSystem.makeDirectory(at: contentPath)
+
+        for apkPath in try await fileSystem.glob(directory: split.splitsPath, include: ["*.apk"]).collect().sorted() {
+            try await fileSystem.unzip(apkPath, to: contentPath.appending(component: apkPath.basenameWithoutExt))
+        }
+
+        return contentPath
     }
 
     private func analyzeAppleBundle(at path: AbsolutePath) async throws -> AppBundleReport {
