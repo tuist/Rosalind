@@ -10,6 +10,7 @@ struct RosalindTests {
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
     private let androidBundleMetadataService = MockAndroidBundleMetadataServicing()
+    private let androidAppBundleSplitService = AndroidAppBundleSplitService()
     #if os(macOS)
         private let assetUtilController = MockAssetUtilControlling()
     #endif
@@ -28,6 +29,7 @@ struct RosalindTests {
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
                 androidBundleMetadataService: androidBundleMetadataService,
+                androidAppBundleSplitService: androidAppBundleSplitService,
                 assetUtilController: assetUtilController
             )
         }
@@ -43,7 +45,8 @@ struct RosalindTests {
                 fileSystem: fileSystem,
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
-                androidBundleMetadataService: androidBundleMetadataService
+                androidBundleMetadataService: androidBundleMetadataService,
+                androidAppBundleSplitService: androidAppBundleSplitService
             )
         }
     #endif
@@ -329,6 +332,61 @@ struct RosalindTests {
             let soArtifact = got.artifacts
                 .first(where: { $0.path == "com.test.app/libapp.so" })
             #expect(soArtifact?.artifactType == .binary)
+        }
+    }
+
+    @Test func aabBundle_reportsOnlyTheSplitsASingleDeviceDownloads() async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            // Given
+            let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
+            let basePath = aabContentsPath.appending(component: "base")
+            try await fileSystem.makeDirectory(at: basePath.appending(component: "dex"))
+            try await fileSystem.writeText(
+                String(repeating: "d", count: 1000),
+                at: basePath.appending(components: "dex", "classes.dex")
+            )
+            for (abi, size) in [("arm64-v8a", 8000), ("armeabi-v7a", 4000)] {
+                try await fileSystem.makeDirectory(at: basePath.appending(components: "lib", abi))
+                try await fileSystem.writeText(
+                    String(repeating: "n", count: size),
+                    at: basePath.appending(components: "lib", abi, "libapp.so")
+                )
+            }
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(component: "BUNDLE-METADATA"))
+            try await fileSystem.writeText(
+                String(repeating: "m", count: 2000),
+                at: aabContentsPath.appending(components: "BUNDLE-METADATA", "dependencies.pb")
+            )
+
+            let aabPath = temporaryDirectory.appending(component: "app.aab")
+            try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
+
+            given(androidBundleMetadataService)
+                .aabMetadata(at: .any)
+                .willReturn(AndroidBundleMetadata(
+                    packageName: "com.test.app",
+                    versionName: "2.0",
+                    appName: "Test App"
+                ))
+
+            // When
+            let got = try await subject.analyzeAppBundle(at: aabPath)
+
+            // Then
+            let artifactPaths = got.artifacts.flatMap { artifact in
+                (artifact.children ?? []).flatMap { ($0.children ?? [$0]).map(\.path) } + [artifact.path]
+            }
+            #expect(artifactPaths.contains("com.test.app/lib/arm64-v8a/libapp.so"))
+            #expect(!artifactPaths.contains { $0.contains("armeabi-v7a") })
+            #expect(!artifactPaths.contains { $0.contains("BUNDLE-METADATA") })
+
+            // Only the base module's dex and the largest ABI reach the device.
+            #expect(got.installSize == 9000)
+
+            let bundleSize = try #require(
+                (try FileManager.default.attributesOfItem(atPath: aabPath.pathString))[.size] as? Int
+            )
+            #expect(try #require(got.downloadSize) < bundleSize)
         }
     }
 
