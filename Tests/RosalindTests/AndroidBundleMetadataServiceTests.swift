@@ -162,7 +162,7 @@ struct AndroidBundleMetadataServiceTests {
 
     // MARK: - AAB Metadata
 
-    @Test func aabMetadata_parsesManifestAndResources() async throws {
+    @Test func aabMetadata_resolvesTheLabelReference_whenADependencyShipsItsOwnAppNameString() async throws {
         let fileSystem = FileSystem()
         let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
         let aabPath = try fixturePath("android_app/app.aab")
@@ -172,6 +172,26 @@ struct AndroidBundleMetadataServiceTests {
         #expect(metadata.packageName == "dev.tuist.example")
         #expect(metadata.versionName == "1.0")
         #expect(metadata.appName == "Simple Android App")
+    }
+
+    @Test func aabMetadata_usesTheLiteralLabel_whenTheLabelIsNotAResourceReference() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+        let aabPath = try fixturePath("android_app/app-with-literal-label.aab")
+
+        let metadata = try await subject.aabMetadata(at: aabPath)
+
+        #expect(metadata.appName == "Literal Android App")
+    }
+
+    @Test func aabMetadata_fallsBackToThePackageName_whenThereIsNoLabel() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+        let aabPath = try fixturePath("android_app/app-without-label.aab")
+
+        let metadata = try await subject.aabMetadata(at: aabPath)
+
+        #expect(metadata.appName == "dev.tuist.example")
     }
 
     @Test func aabMetadata_throws_whenManifestNotFound() async throws {

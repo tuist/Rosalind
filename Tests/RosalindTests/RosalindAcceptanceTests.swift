@@ -77,6 +77,22 @@ struct RosalindAcceptanceTests {
         }
     #endif
 
+    @Test func android_aab() async throws {
+        try await withFixtureInTemporaryDirectory("android_app") { _, fixtureDirectory in
+            // When
+            let got = try await subject
+                .analyzeAppBundle(
+                    at: fixtureDirectory.appending(component: "app.aab")
+                )
+
+            // Then
+            assertSnapshot(
+                of: got,
+                as: .rosalind()
+            )
+        }
+    }
+
     private func withFixtureInTemporaryDirectory(
         _ fixturePath: String,
         callback: (AbsolutePath, AbsolutePath) async throws -> Void
