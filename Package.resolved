@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Kolos65/Mockable",
       "state" : {
-        "revision" : "bd20509c34ca3205003677747ad8dcb70d18b7ca",
-        "version" : "0.6.2"
+        "revision" : "0b239389c5fa6666fb30dc97fbb23fc3ca851a85",
+        "version" : "0.6.4"
       }
     },
     {
