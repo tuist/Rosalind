@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/Command.git",
       "state" : {
-        "revision" : "079a7803b581d3022469b3a331bccd51d48d2fc0",
-        "version" : "0.13.0"
+        "revision" : "4c34f98f5f15e833e22efb51c13302094c4f7938",
+        "version" : "0.14.12"
       }
     },
     {
