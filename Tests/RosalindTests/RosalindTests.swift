@@ -1,6 +1,7 @@
 import FileSystem
 import Foundation
 import Mockable
+import Path
 import Testing
 
 @testable import Rosalind
@@ -10,6 +11,7 @@ struct RosalindTests {
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
     private let androidBundleMetadataService = MockAndroidBundleMetadataServicing()
+    private let androidAppBundleSplitService = MockAndroidAppBundleSplitServicing()
     #if os(macOS)
         private let assetUtilController = MockAssetUtilControlling()
     #endif
@@ -28,6 +30,7 @@ struct RosalindTests {
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
                 androidBundleMetadataService: androidBundleMetadataService,
+                androidAppBundleSplitService: androidAppBundleSplitService,
                 assetUtilController: assetUtilController
             )
         }
@@ -43,7 +46,8 @@ struct RosalindTests {
                 fileSystem: fileSystem,
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
-                androidBundleMetadataService: androidBundleMetadataService
+                androidBundleMetadataService: androidBundleMetadataService,
+                androidAppBundleSplitService: androidAppBundleSplitService
             )
         }
     #endif
@@ -287,15 +291,22 @@ struct RosalindTests {
     @Test func aabBundle() async throws {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
             // Given
-            let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
-            let basePath = aabContentsPath.appending(component: "base")
-            let dexDir = basePath.appending(component: "dex")
-            try await fileSystem.makeDirectory(at: dexDir)
-            try await fileSystem.writeText("dex-bytecode", at: dexDir.appending(component: "classes.dex"))
-            try await fileSystem.writeText("native-lib", at: basePath.appending(component: "libapp.so"))
-
             let aabPath = temporaryDirectory.appending(component: "app.aab")
-            try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
+            try await fileSystem.writeText("bundle", at: aabPath)
+
+            // bundletool hands back the splits the reference device installs.
+            let splitsPath = temporaryDirectory.appending(component: "splits")
+            try await fileSystem.makeDirectory(at: splitsPath)
+            try await makeSplit(
+                named: "base-master",
+                in: splitsPath,
+                files: ["classes.dex": "dex-bytecode", "resources.arsc": "resources"]
+            )
+            try await makeSplit(
+                named: "base-arm64_v8a",
+                in: splitsPath,
+                files: ["lib/arm64-v8a/libapp.so": "native-lib"]
+            )
 
             given(androidBundleMetadataService)
                 .aabMetadata(at: .any)
@@ -304,6 +315,9 @@ struct RosalindTests {
                     versionName: "2.0",
                     appName: "Test App"
                 ))
+            given(androidAppBundleSplitService)
+                .split(of: .any, in: .any)
+                .willReturn(AndroidAppBundleSplit(splitsPath: splitsPath, downloadSize: 1234))
 
             // When
             let got = try await subject.analyzeAppBundle(at: aabPath)
@@ -314,21 +328,44 @@ struct RosalindTests {
             #expect(got.type == .aab)
             #expect(got.version == "2.0")
             #expect(got.platforms == ["android"])
-            #expect(got.downloadSize != nil)
 
+            // The download size is bundletool's, and the install size covers the same splits.
+            #expect(got.downloadSize == 1234)
+            #expect(got.installSize == 31)
+
+            // Each split stays distinguishable in the breakdown.
             let artifactPaths = got.artifacts.map(\.path)
-            #expect(artifactPaths.contains("com.test.app/dex"))
-            #expect(artifactPaths.contains("com.test.app/libapp.so"))
+            #expect(artifactPaths.sorted() == ["com.test.app/base-arm64_v8a", "com.test.app/base-master"])
 
             let dexArtifact = got.artifacts
-                .first(where: { $0.path == "com.test.app/dex" })?
+                .first(where: { $0.path == "com.test.app/base-master" })?
                 .children?
-                .first(where: { $0.path == "com.test.app/dex/classes.dex" })
+                .first(where: { $0.path == "com.test.app/base-master/classes.dex" })
             #expect(dexArtifact?.artifactType == .binary)
 
-            let soArtifact = got.artifacts
-                .first(where: { $0.path == "com.test.app/libapp.so" })
-            #expect(soArtifact?.artifactType == .binary)
+            let arscArtifact = got.artifacts
+                .first(where: { $0.path == "com.test.app/base-master" })?
+                .children?
+                .first(where: { $0.path == "com.test.app/base-master/resources.arsc" })
+            #expect(arscArtifact?.artifactType == .asset)
+        }
+    }
+
+    private func makeSplit(
+        named name: String,
+        in splitsPath: AbsolutePath,
+        files: [String: String]
+    ) async throws {
+        try await fileSystem.runInTemporaryDirectory(prefix: name) { contentsPath in
+            for (path, contents) in files {
+                let filePath = contentsPath.appending(try RelativePath(validating: path))
+                try await fileSystem.makeDirectory(at: filePath.parentDirectory)
+                try await fileSystem.writeText(contents, at: filePath)
+            }
+            try await fileSystem.zipFileOrDirectoryContent(
+                at: contentsPath,
+                to: splitsPath.appending(component: "\(name).apk")
+            )
         }
     }
 

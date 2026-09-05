@@ -66,6 +66,7 @@ public struct Rosalind: Rosalindable {
     private let appBundleLoader: AppBundleLoading
     private let shasumCalculator: ShasumCalculating
     private let androidBundleMetadataService: AndroidBundleMetadataServicing
+    private let androidAppBundleSplitService: AndroidAppBundleSplitServicing
     #if os(macOS)
         private let assetUtilController: AssetUtilControlling
     #endif
@@ -78,6 +79,7 @@ public struct Rosalind: Rosalindable {
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
                 androidBundleMetadataService: AndroidBundleMetadataService(),
+                androidAppBundleSplitService: AndroidAppBundleSplitService(),
                 assetUtilController: AssetUtilController()
             )
         }
@@ -87,12 +89,14 @@ public struct Rosalind: Rosalindable {
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
             androidBundleMetadataService: AndroidBundleMetadataServicing,
+            androidAppBundleSplitService: AndroidAppBundleSplitServicing,
             assetUtilController: AssetUtilControlling
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
             self.androidBundleMetadataService = androidBundleMetadataService
+            self.androidAppBundleSplitService = androidAppBundleSplitService
             self.assetUtilController = assetUtilController
         }
     #else
@@ -102,7 +106,8 @@ public struct Rosalind: Rosalindable {
                 fileSystem: FileSystem(),
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
-                androidBundleMetadataService: AndroidBundleMetadataService()
+                androidBundleMetadataService: AndroidBundleMetadataService(),
+                androidAppBundleSplitService: AndroidAppBundleSplitService()
             )
         }
 
@@ -110,12 +115,14 @@ public struct Rosalind: Rosalindable {
             fileSystem: FileSysteming,
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
-            androidBundleMetadataService: AndroidBundleMetadataServicing
+            androidBundleMetadataService: AndroidBundleMetadataServicing,
+            androidAppBundleSplitService: AndroidAppBundleSplitServicing
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
             self.androidBundleMetadataService = androidBundleMetadataService
+            self.androidAppBundleSplitService = androidAppBundleSplitService
         }
     #endif
 
@@ -136,24 +143,20 @@ public struct Rosalind: Rosalindable {
 
     private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
-            let unzippedPath = temporaryDirectory.appending(component: path.basename)
-            try await fileSystem.unzip(path, to: unzippedPath)
-
             let metadata: AndroidBundleMetadata
+            let contentPath: AbsolutePath
+            let downloadSize: Int
+
             if path.extension == "aab" {
                 metadata = try await androidBundleMetadataService.aabMetadata(at: path)
+                let split = try await androidAppBundleSplitService.split(of: path, in: temporaryDirectory)
+                contentPath = try await unzipSplits(split, packageName: metadata.packageName, in: temporaryDirectory)
+                downloadSize = split.downloadSize
             } else {
                 metadata = try await androidBundleMetadataService.apkMetadata(at: path)
-            }
-
-            let contentPath: AbsolutePath
-            let basePath = unzippedPath.appending(component: "base")
-            if try await fileSystem.exists(basePath, isDirectory: true) {
-                let renamedPath = temporaryDirectory.appending(component: metadata.packageName)
-                try await fileSystem.move(from: basePath, to: renamedPath)
-                contentPath = renamedPath
-            } else {
-                contentPath = unzippedPath
+                contentPath = temporaryDirectory.appending(component: path.basename)
+                try await fileSystem.unzip(path, to: contentPath)
+                downloadSize = try fileSize(at: path)
             }
 
             let artifactPath = try await pathToArtifact(contentPath)
@@ -163,13 +166,10 @@ public struct Rosalind: Rosalindable {
                 isAndroid: true
             )
 
-            let downloadSize = try fileSize(at: path)
-            let bundleType: AppBundleReport.BundleType = path.extension == "aab" ? .aab : .apk
-
             return AppBundleReport(
                 bundleId: metadata.packageName,
                 name: metadata.appName,
-                type: bundleType,
+                type: path.extension == "aab" ? .aab : .apk,
                 installSize: artifact.size,
                 downloadSize: downloadSize,
                 platforms: ["android"],
@@ -177,6 +177,23 @@ public struct Rosalind: Rosalindable {
                 artifacts: artifact.children ?? []
             )
         }
+    }
+
+    /// Unpacks each split the device installs under its own name, so that the install size and the artifact
+    /// breakdown describe the same bytes as the download size, and so that the splits stay distinguishable.
+    private func unzipSplits(
+        _ split: AndroidAppBundleSplit,
+        packageName: String,
+        in temporaryDirectory: AbsolutePath
+    ) async throws -> AbsolutePath {
+        let contentPath = temporaryDirectory.appending(component: packageName)
+        try await fileSystem.makeDirectory(at: contentPath)
+
+        for apkPath in try await fileSystem.glob(directory: split.splitsPath, include: ["*.apk"]).collect().sorted() {
+            try await fileSystem.unzip(apkPath, to: contentPath.appending(component: apkPath.basenameWithoutExt))
+        }
+
+        return contentPath
     }
 
     private func analyzeAppleBundle(at path: AbsolutePath) async throws -> AppBundleReport {
