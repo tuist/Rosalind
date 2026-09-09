@@ -298,7 +298,7 @@ struct RosalindTests {
             try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
 
             given(androidBundleMetadataService)
-                .aabMetadata(at: .any)
+                .aabMetadata(fromExtractedContentsAt: .any)
                 .willReturn(AndroidBundleMetadata(
                     packageName: "com.test.app",
                     versionName: "2.0",
@@ -329,6 +329,13 @@ struct RosalindTests {
             let soArtifact = got.artifacts
                 .first(where: { $0.path == "com.test.app/libapp.so" })
             #expect(soArtifact?.artifactType == .binary)
+
+            verify(androidBundleMetadataService)
+                .aabMetadata(fromExtractedContentsAt: .any)
+                .called(1)
+            verify(androidBundleMetadataService)
+                .aabMetadata(at: .any)
+                .called(0)
         }
     }
 

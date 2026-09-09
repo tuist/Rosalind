@@ -216,6 +216,42 @@ struct AndroidBundleMetadataServiceTests {
         }
     }
 
+    // MARK: - AAB Metadata from already-extracted contents
+
+    @Test func aabMetadata_fromExtractedContents_readsMetadataWithoutUnzipping() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+        let aabPath = try fixturePath("android_app/app.aab")
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "extracted") { temporaryDirectory in
+            let extractedPath = temporaryDirectory.appending(component: "extracted")
+            try await fileSystem.unzip(aabPath, to: extractedPath)
+
+            let metadata = try await subject.aabMetadata(fromExtractedContentsAt: extractedPath)
+
+            #expect(metadata.packageName == "dev.tuist.example")
+            #expect(metadata.versionName == "1.0")
+            #expect(metadata.appName == "Simple Android App")
+        }
+    }
+
+    @Test func aabMetadata_fromExtractedContents_throws_whenManifestNotFound() async throws {
+        let fileSystem = FileSystem()
+        let subject = AndroidBundleMetadataService(fileSystem: fileSystem)
+
+        try await fileSystem.runInTemporaryDirectory(prefix: "extracted") { temporaryDirectory in
+            let extractedPath = temporaryDirectory.appending(component: "extracted")
+            try await fileSystem.makeDirectory(at: extractedPath.appending(component: "base"))
+
+            await #expect {
+                try await subject.aabMetadata(fromExtractedContentsAt: extractedPath)
+            } throws: { error in
+                if let e = error as? AndroidBundleMetadataServiceError, case .manifestNotFound = e { return true }
+                return false
+            }
+        }
+    }
+
     // MARK: - Helpers
 
     private func fixturePath(_ relativePath: String) throws -> AbsolutePath {
