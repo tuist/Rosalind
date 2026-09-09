@@ -32,6 +32,7 @@ struct AndroidBundleMetadata: Equatable {
 protocol AndroidBundleMetadataServicing: Sendable {
     func apkMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata
     func aabMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata
+    func aabMetadata(fromExtractedContentsAt extractedPath: AbsolutePath) async throws -> AndroidBundleMetadata
 }
 
 struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
@@ -85,37 +86,40 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
         try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
             let unzippedPath = temporaryDirectory.appending(component: path.basename)
             try await fileSystem.unzip(path, to: unzippedPath)
-
-            let manifestPath = unzippedPath.appending(components: "base", "manifest", "AndroidManifest.xml")
-            guard try await fileSystem.exists(manifestPath) else {
-                throw AndroidBundleMetadataServiceError.manifestNotFound(path)
-            }
-
-            let data = try await fileSystem.readFile(at: manifestPath)
-            let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: data)
-            let attributes = xmlNode.element.attribute
-            let packageName = attributes.first(where: { $0.name == "package" })?.value
-            let versionName = attributes.first(where: { $0.name == "versionName" })?.value
-
-            guard let packageName, !packageName.isEmpty else {
-                throw AndroidBundleMetadataServiceError.parsingFailed(manifestPath)
-            }
-
-            var resourceTable: Aapt_Pb_ResourceTable?
-            let resourcesPath = unzippedPath.appending(components: "base", "resources.pb")
-            if try await fileSystem.exists(resourcesPath) {
-                let resourcesData = try await fileSystem.readFile(at: resourcesPath)
-                resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
-            }
-
-            let appName = applicationLabel(in: xmlNode, resourceTable: resourceTable)
-
-            return AndroidBundleMetadata(
-                packageName: packageName,
-                versionName: versionName ?? "1.0",
-                appName: appName ?? packageName
-            )
+            return try await aabMetadata(fromExtractedContentsAt: unzippedPath)
         }
+    }
+
+    func aabMetadata(fromExtractedContentsAt extractedPath: AbsolutePath) async throws -> AndroidBundleMetadata {
+        let manifestPath = extractedPath.appending(components: "base", "manifest", "AndroidManifest.xml")
+        guard try await fileSystem.exists(manifestPath) else {
+            throw AndroidBundleMetadataServiceError.manifestNotFound(extractedPath)
+        }
+
+        let data = try await fileSystem.readFile(at: manifestPath)
+        let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: data)
+        let attributes = xmlNode.element.attribute
+        let packageName = attributes.first(where: { $0.name == "package" })?.value
+        let versionName = attributes.first(where: { $0.name == "versionName" })?.value
+
+        guard let packageName, !packageName.isEmpty else {
+            throw AndroidBundleMetadataServiceError.parsingFailed(manifestPath)
+        }
+
+        var resourceTable: Aapt_Pb_ResourceTable?
+        let resourcesPath = extractedPath.appending(components: "base", "resources.pb")
+        if try await fileSystem.exists(resourcesPath) {
+            let resourcesData = try await fileSystem.readFile(at: resourcesPath)
+            resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
+        }
+
+        let appName = applicationLabel(in: xmlNode, resourceTable: resourceTable)
+
+        return AndroidBundleMetadata(
+            packageName: packageName,
+            versionName: versionName ?? "1.0",
+            appName: appName ?? packageName
+        )
     }
 
     private func applicationLabel(

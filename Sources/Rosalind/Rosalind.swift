@@ -141,7 +141,7 @@ public struct Rosalind: Rosalindable {
 
             let metadata: AndroidBundleMetadata
             if path.extension == "aab" {
-                metadata = try await androidBundleMetadataService.aabMetadata(at: path)
+                metadata = try await androidBundleMetadataService.aabMetadata(fromExtractedContentsAt: unzippedPath)
             } else {
                 metadata = try await androidBundleMetadataService.apkMetadata(at: path)
             }
