@@ -195,8 +195,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tuist/ZIPFoundation",
       "state" : {
-        "revision" : "a0e902e08e7a9ff3f0c1d109dc331b20cd498bb5",
-        "version" : "0.9.21"
+        "revision" : "dfdbf2b3c96f220d4af7bbabc2cd38671f0bd06d",
+        "version" : "0.9.22"
       }
     }
   ],
