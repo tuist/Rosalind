@@ -24,7 +24,7 @@ jobs:
         swift: ["6.2"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Select Xcode
         if: runner.os == 'macOS'
         run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
@@ -51,7 +51,7 @@ jobs:
         os: [macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_$(cat .xcode-version).app
       - uses: jdx/mise-action@v2
@@ -70,7 +70,7 @@ jobs:
     timeout-minutes: 10
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: jdx/mise-action@v2
         with:
           experimental: true
