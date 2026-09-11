@@ -12,6 +12,12 @@ Our tool, Rosalind, analyzes application bundles to uncover these hidden structu
 
 Rosalind currently provides comprehensive analysis of Xcode-built application artifacts, with planned support for Android and React Native platforms in our development roadmap. Our vision is to offer a unified approach to understanding the DNA of your applications across all major app development ecosystems.
 
+## Android tooling
+
+Analyzing an `.aab` requires [bundletool](https://github.com/google/bundletool), which resolves the split APKs a device installs. Install it with `brew install bundletool`, or download `bundletool-all.jar` from the [releases](https://github.com/google/bundletool/releases) and point `BUNDLETOOL_PATH` at it.
+
+Analyzing an `.apk` requires `aapt2`, from the Android SDK build tools. Set `ANDROID_HOME` or `ANDROID_SDK_ROOT`, or put `aapt2` on `PATH`.
+
 ## Development
 
 ### Set up
@@ -20,3 +26,5 @@ Rosalind currently provides comprehensive analysis of Xcode-built application ar
 2. Install system dependencies: `mise install`.
 3. Install project dependencies: `mise run install`.
 4. Build the project: `mise run build`.
+
+Running the tests requires bundletool, as described above.
