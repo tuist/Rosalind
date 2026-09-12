@@ -20,11 +20,11 @@ public struct AppBundleReport: Sendable, Codable, Equatable {
     public let name: String
     /// The type of the bundle
     public let type: BundleType
-    /// The app install size in bytes. This is the size of the `.app` bundle and represents the value that will be installed on
-    /// the device.
+    /// The app install size in bytes. This is the value that will be installed on the device. For an `.aab`, it covers only
+    /// the splits a single device downloads, so it is not the size of the whole bundle.
     public let installSize: Int
-    /// The app download size in bytes. Only available for `.ipa`. It represents the compressed size that the users will end up
-    /// downloading over the network.
+    /// The app download size in bytes. Not available for `.app` and `.xcarchive`. It represents the compressed size that the
+    /// users will end up downloading over the network. For an `.aab`, it covers the same splits as `installSize`.
     public let downloadSize: Int?
     /// List of supported platforms, such as `iPhoneSimulator`. List of possible values is the same as for
     /// `CFBundleSupportedPlatforms`.
@@ -77,4 +77,18 @@ public struct AppBundleArtifact: Sendable, Codable, Equatable {
     public let size: Int
     public let shasum: String
     public let children: [AppBundleArtifact]?
+
+    public init(
+        artifactType: ArtifactType,
+        path: String,
+        size: Int,
+        shasum: String,
+        children: [AppBundleArtifact]?
+    ) {
+        self.artifactType = artifactType
+        self.path = path
+        self.size = size
+        self.shasum = shasum
+        self.children = children
+    }
 }
