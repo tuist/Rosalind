@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.99] - 2026-09-12
+### Details
+#### <!-- 1 -->🐛 Bug Fixes
+- Measure .aab sizes with bundletool against a reference device by @pepicrft
+
 ## [0.7.98] - 2026-09-09
 ### Details
 #### <!-- 1 -->🐛 Bug Fixes
@@ -109,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## New Contributors
 * @renovate[bot] made their first contribution in [#5](https://github.com/tuist/Rosalind/pull/5)
 * @pepicrft made their first contribution in [#3](https://github.com/tuist/Rosalind/pull/3)
+[0.7.99]: https://github.com/tuist/Rosalind/compare/0.7.98..0.7.99
 [0.7.98]: https://github.com/tuist/Rosalind/compare/0.7.97..0.7.98
 [0.7.97]: https://github.com/tuist/Rosalind/compare/0.7.96..0.7.97
 [0.7.96]: https://github.com/tuist/Rosalind/compare/0.7.95..0.7.96
