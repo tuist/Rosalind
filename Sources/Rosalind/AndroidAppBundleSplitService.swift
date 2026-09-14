@@ -68,45 +68,58 @@ struct AndroidAppBundleSplitService: AndroidAppBundleSplitServicing {
     }
 
     func split(of path: AbsolutePath, in temporaryDirectory: AbsolutePath) async throws -> AndroidAppBundleSplit {
-        let bundletool = try await resolveBundletool()
+        let bundletool = try await withTiming("bundletool.resolve") {
+            try await resolveBundletool()
+        }
+        rosalindLogger.debug("bundletool resolved to: \(bundletool.joined(separator: " "))")
 
         let deviceSpecPath = temporaryDirectory.appending(component: "device-spec.json")
         try await fileSystem.writeText(Self.referenceDeviceSpec, at: deviceSpecPath)
 
         let apksPath = temporaryDirectory.appending(component: "device.apks")
-        _ = try await commandRunner.run(
-            arguments: bundletool + [
-                "build-apks",
-                "--bundle=\(path.pathString)",
-                "--output=\(apksPath.pathString)",
-                "--device-spec=\(deviceSpecPath.pathString)",
-            ]
-        )
-        .concatenatedString()
+        let buildApksArgs = bundletool + [
+            "build-apks",
+            "--bundle=\(path.pathString)",
+            "--output=\(apksPath.pathString)",
+            "--device-spec=\(deviceSpecPath.pathString)",
+        ]
+        rosalindLogger.debug("bundletool build-apks: invoking \(buildApksArgs.joined(separator: " "))")
+        _ = try await withHeartbeat("bundletool build-apks", every: 30) {
+            try await withTiming("bundletool build-apks") {
+                try await commandRunner.run(arguments: buildApksArgs).concatenatedString()
+            }
+        }
 
         let splitsPath = temporaryDirectory.appending(component: "splits")
         try await fileSystem.makeDirectory(at: splitsPath)
 
+        let getSizeArgs = bundletool + [
+            "get-size", "total",
+            "--apks=\(apksPath.pathString)",
+            "--device-spec=\(deviceSpecPath.pathString)",
+        ]
+        let extractArgs = bundletool + [
+            "extract-apks",
+            "--apks=\(apksPath.pathString)",
+            "--output-dir=\(splitsPath.pathString)",
+            "--device-spec=\(deviceSpecPath.pathString)",
+        ]
+        rosalindLogger.debug("bundletool get-size: invoking \(getSizeArgs.joined(separator: " "))")
+        rosalindLogger.debug("bundletool extract-apks: invoking \(extractArgs.joined(separator: " "))")
+
         // `get-size total` and `extract-apks` both read the already-built `.apks` and write to disjoint
         // outputs, so their JVM startup + IO overlap instead of stacking.
-        async let sizeOutput = commandRunner.run(
-            arguments: bundletool + [
-                "get-size", "total",
-                "--apks=\(apksPath.pathString)",
-                "--device-spec=\(deviceSpecPath.pathString)",
-            ]
-        )
-        .concatenatedString()
+        async let sizeOutput = withHeartbeat("bundletool get-size", every: 30) {
+            try await withTiming("bundletool get-size") {
+                try await commandRunner.run(arguments: getSizeArgs).concatenatedString()
+            }
+        }
 
-        async let extractOutput = commandRunner.run(
-            arguments: bundletool + [
-                "extract-apks",
-                "--apks=\(apksPath.pathString)",
-                "--output-dir=\(splitsPath.pathString)",
-                "--device-spec=\(deviceSpecPath.pathString)",
-            ]
-        )
-        .concatenatedString()
+        async let extractOutput = withHeartbeat("bundletool extract-apks", every: 30) {
+            try await withTiming("bundletool extract-apks") {
+                try await commandRunner.run(arguments: extractArgs).concatenatedString()
+            }
+        }
 
         let size = try await sizeOutput
         _ = try await extractOutput
