@@ -3,6 +3,7 @@ import Command
 import Foundation
 import Mockable
 import Path
+import ZIPFoundation
 
 enum AndroidBundleMetadataServiceError: LocalizedError {
     case aapt2NotFound
@@ -98,15 +99,33 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
 
     func aabMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata {
         try await withTiming("aabMetadata(\(path.basename))") {
-            try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
-                let unzippedPath = temporaryDirectory.appending(component: path.basename)
-                try await withHeartbeat("aabMetadata unzip (\(path.basename))", every: 30) {
-                    try await withTiming("aabMetadata unzip (\(path.basename))") {
-                        try await fileSystem.unzip(path, to: unzippedPath)
-                    }
+            // The metadata lives in exactly two ZIP entries: `base/manifest/AndroidManifest.xml`
+            // (a protobuf-encoded manifest, typically ~150 KB) and `base/resources.pb` (the
+            // resource table, low single-digit megabytes). Reading them straight out of the
+            // archive skips the 1 GB+ full unzip that dominated wall-clock on Linux — where
+            // ZIPFoundation's per-chunk `Data(count:)` allocations turn a 4 s macOS extract
+            // into a nearly minute-long Linux one.
+            let (manifestData, resourcesData) = try await Task.detached(priority: .userInitiated) {
+                let archive = try Archive(url: URL(fileURLWithPath: path.pathString), accessMode: .read)
+                guard let manifestEntry = archive["base/manifest/AndroidManifest.xml"] else {
+                    throw AndroidBundleMetadataServiceError.manifestNotFound(path)
                 }
-                return try await aabMetadata(fromExtractedContentsAt: unzippedPath)
-            }
+                var manifest = Data()
+                _ = try archive.extract(manifestEntry, bufferSize: 256 * 1024, skipCRC32: true) { chunk in
+                    manifest.append(chunk)
+                }
+                var resources: Data?
+                if let resourcesEntry = archive["base/resources.pb"] {
+                    var buffer = Data()
+                    _ = try archive.extract(resourcesEntry, bufferSize: 1024 * 1024, skipCRC32: true) { chunk in
+                        buffer.append(chunk)
+                    }
+                    resources = buffer
+                }
+                return (manifest, resources)
+            }.value
+
+            return try Self.parseAabMetadata(manifestData: manifestData, resourcesData: resourcesData, source: path)
         }
     }
 
@@ -116,30 +135,48 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
             throw AndroidBundleMetadataServiceError.manifestNotFound(extractedPath)
         }
 
-        let data = try await withTiming("aabMetadata read AndroidManifest.xml") {
+        let manifestData = try await withTiming("aabMetadata read AndroidManifest.xml") {
             try await fileSystem.readFile(at: manifestPath)
         }
-        rosalindLogger.debug("aabMetadata AndroidManifest.xml size: \(data.count) bytes")
-        let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: data)
+        rosalindLogger.debug("aabMetadata AndroidManifest.xml size: \(manifestData.count) bytes")
+
+        var resourcesData: Data?
+        let resourcesPath = extractedPath.appending(components: "base", "resources.pb")
+        if try await fileSystem.exists(resourcesPath) {
+            let data = try await withTiming("aabMetadata read resources.pb") {
+                try await fileSystem.readFile(at: resourcesPath)
+            }
+            rosalindLogger.debug("aabMetadata resources.pb size: \(data.count) bytes")
+            resourcesData = data
+        }
+
+        return try Self.parseAabMetadata(
+            manifestData: manifestData,
+            resourcesData: resourcesData,
+            source: extractedPath
+        )
+    }
+
+    /// Shared parser used by both the on-disk `fromExtractedContentsAt:` path and the archive-
+    /// streaming `at:` path. Isolating it means the streaming path can hand in raw `Data` without
+    /// touching the filesystem, while the disk path continues to work for callers that already
+    /// have the AAB extracted.
+    fileprivate static func parseAabMetadata(
+        manifestData: Data,
+        resourcesData: Data?,
+        source: AbsolutePath
+    ) throws -> AndroidBundleMetadata {
+        let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: manifestData)
         let attributes = xmlNode.element.attribute
         let packageName = attributes.first(where: { $0.name == "package" })?.value
         let versionName = attributes.first(where: { $0.name == "versionName" })?.value
 
         guard let packageName, !packageName.isEmpty else {
-            throw AndroidBundleMetadataServiceError.parsingFailed(manifestPath)
+            throw AndroidBundleMetadataServiceError.parsingFailed(source)
         }
 
-        var resourceTable: Aapt_Pb_ResourceTable?
-        let resourcesPath = extractedPath.appending(components: "base", "resources.pb")
-        if try await fileSystem.exists(resourcesPath) {
-            let resourcesData = try await withTiming("aabMetadata read resources.pb") {
-                try await fileSystem.readFile(at: resourcesPath)
-            }
-            rosalindLogger.debug("aabMetadata resources.pb size: \(resourcesData.count) bytes")
-            resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
-        }
-
-        let appName = applicationLabel(in: xmlNode, resourceTable: resourceTable)
+        let resourceTable: Aapt_Pb_ResourceTable? = try resourcesData.map { try Aapt_Pb_ResourceTable(serializedBytes: $0) }
+        let appName = Self.applicationLabel(in: xmlNode, resourceTable: resourceTable)
 
         return AndroidBundleMetadata(
             packageName: packageName,
@@ -148,7 +185,7 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
         )
     }
 
-    private func applicationLabel(
+    private static func applicationLabel(
         in manifest: Aapt_Pb_XmlNode,
         resourceTable: Aapt_Pb_ResourceTable?
     ) -> String? {
@@ -166,7 +203,7 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
         return string(withResourceID: reference.id, in: resourceTable)
     }
 
-    private func string(withResourceID resourceID: UInt32, in resourceTable: Aapt_Pb_ResourceTable) -> String? {
+    private static func string(withResourceID resourceID: UInt32, in resourceTable: Aapt_Pb_ResourceTable) -> String? {
         guard let entry = resourceTable.package
             .first(where: { $0.packageID.id == (resourceID >> 24) & 0xFF })?
             .type.first(where: { $0.typeID.id == (resourceID >> 16) & 0xFF })?

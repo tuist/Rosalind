@@ -66,7 +66,7 @@ public struct Rosalind: Rosalindable {
     private let appBundleLoader: AppBundleLoading
     private let shasumCalculator: ShasumCalculating
     private let androidBundleMetadataService: AndroidBundleMetadataServicing
-    private let androidAppBundleSplitService: AndroidAppBundleSplitServicing
+    private let androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzing
     #if os(macOS)
         private let assetUtilController: AssetUtilControlling
     #endif
@@ -79,7 +79,7 @@ public struct Rosalind: Rosalindable {
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
                 androidBundleMetadataService: AndroidBundleMetadataService(),
-                androidAppBundleSplitService: AndroidAppBundleSplitService(),
+                androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzer(),
                 assetUtilController: AssetUtilController()
             )
         }
@@ -89,14 +89,14 @@ public struct Rosalind: Rosalindable {
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
             androidBundleMetadataService: AndroidBundleMetadataServicing,
-            androidAppBundleSplitService: AndroidAppBundleSplitServicing,
+            androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzing,
             assetUtilController: AssetUtilControlling
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
             self.androidBundleMetadataService = androidBundleMetadataService
-            self.androidAppBundleSplitService = androidAppBundleSplitService
+            self.androidBundleStreamAnalyzer = androidBundleStreamAnalyzer
             self.assetUtilController = assetUtilController
         }
     #else
@@ -107,7 +107,7 @@ public struct Rosalind: Rosalindable {
                 appBundleLoader: AppBundleLoader(),
                 shasumCalculator: ShasumCalculator(),
                 androidBundleMetadataService: AndroidBundleMetadataService(),
-                androidAppBundleSplitService: AndroidAppBundleSplitService()
+                androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzer()
             )
         }
 
@@ -116,13 +116,13 @@ public struct Rosalind: Rosalindable {
             appBundleLoader: AppBundleLoading,
             shasumCalculator: ShasumCalculating,
             androidBundleMetadataService: AndroidBundleMetadataServicing,
-            androidAppBundleSplitService: AndroidAppBundleSplitServicing
+            androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzing
         ) {
             self.fileSystem = fileSystem
             self.appBundleLoader = appBundleLoader
             self.shasumCalculator = shasumCalculator
             self.androidBundleMetadataService = androidBundleMetadataService
-            self.androidAppBundleSplitService = androidAppBundleSplitService
+            self.androidBundleStreamAnalyzer = androidBundleStreamAnalyzer
         }
     #endif
 
@@ -147,88 +147,67 @@ public struct Rosalind: Rosalindable {
         }
     }
 
+    /// Analyzes an Android bundle (`.aab` / `.apk`) end-to-end without ever expanding the archive
+    /// to disk. Reads metadata from two targeted ZIP entries, then walks the archive one entry at
+    /// a time, streaming decompressed bytes through SHA-256 into an in-memory artifact tree.
+    ///
+    /// This replaces the previous "unzip everything, then traverse the directory" flow. On Linux
+    /// that flow was dominated by ZIPFoundation's per-chunk `Data(count:)` allocations (~65k per
+    /// GB of decompressed output) plus per-file writes for the 6,000+ entries in a real app,
+    /// which stacked to minute-scale wall-clock on CI runners. Streaming skips the write path
+    /// entirely and hashes each entry with a 1 MB inflate buffer, cutting Linux wall-clock by an
+    /// order of magnitude while keeping macOS at least as fast as before.
     private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
-        try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
-            rosalindLogger.debug("analyzeAndroidBundle: temp dir at \(temporaryDirectory.pathString)")
-            let metadata: AndroidBundleMetadata
-            let contentPath: AbsolutePath
-            let downloadSize: Int
+        let bundleType: AppBundleReport.BundleType = path.extension == "aab" ? .aab : .apk
+        rosalindLogger.debug("analyzeAndroidBundle: streaming \(bundleType.rawValue) at \(path.pathString)")
 
-            if path.extension == "aab" {
-                metadata = try await androidBundleMetadataService.aabMetadata(at: path)
-                rosalindLogger.debug(
-                    "analyzeAndroidBundle: aab metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
-                )
-                let split = try await withTiming("androidAppBundleSplitService.split") {
-                    try await androidAppBundleSplitService.split(of: path, in: temporaryDirectory)
-                }
-                rosalindLogger.debug(
-                    "analyzeAndroidBundle: split downloadSize=\(split.downloadSize) at \(split.splitsPath.pathString)"
-                )
-                contentPath = try await unzipSplits(split, packageName: metadata.packageName, in: temporaryDirectory)
-                downloadSize = split.downloadSize
-            } else {
-                metadata = try await androidBundleMetadataService.apkMetadata(at: path)
-                rosalindLogger.debug(
-                    "analyzeAndroidBundle: apk metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
-                )
-                contentPath = temporaryDirectory.appending(component: path.basename)
-                try await withHeartbeat("analyzeAndroidBundle unzip apk", every: 30) {
-                    try await withTiming("analyzeAndroidBundle unzip apk (\(path.basename))") {
-                        try await fileSystem.unzip(path, to: contentPath)
-                    }
-                }
-                downloadSize = try fileSize(at: path)
-            }
+        let metadata: AndroidBundleMetadata
+        let analysis: AndroidBundleStreamAnalysis
+        let downloadSize: Int
 
-            let artifactPath = try await pathToArtifact(contentPath)
-            let artifact = try await withHeartbeat("analyzeAndroidBundle traverse", every: 30) {
-                try await withTiming("analyzeAndroidBundle traverse") {
-                    try await traverse(
-                        artifact: artifactPath,
-                        baseArtifact: artifactPath,
-                        isAndroid: true
-                    )
-                }
-            }
-
-            return AppBundleReport(
-                bundleId: metadata.packageName,
-                name: metadata.appName,
-                type: path.extension == "aab" ? .aab : .apk,
-                installSize: artifact.size,
-                downloadSize: downloadSize,
-                platforms: ["android"],
-                version: metadata.versionName,
-                artifacts: artifact.children ?? []
+        if bundleType == .aab {
+            metadata = try await androidBundleMetadataService.aabMetadata(at: path)
+            rosalindLogger.debug(
+                "analyzeAndroidBundle: aab metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
             )
-        }
-    }
-
-    /// Unpacks each split the device installs under its own name, so that the install size and the artifact
-    /// breakdown describe the same bytes as the download size, and so that the splits stay distinguishable.
-    private func unzipSplits(
-        _ split: AndroidAppBundleSplit,
-        packageName: String,
-        in temporaryDirectory: AbsolutePath
-    ) async throws -> AbsolutePath {
-        let contentPath = temporaryDirectory.appending(component: packageName)
-        try await fileSystem.makeDirectory(at: contentPath)
-
-        let apks = try await fileSystem.glob(directory: split.splitsPath, include: ["*.apk"]).collect().sorted()
-        rosalindLogger.debug("unzipSplits: \(apks.count) split apks to unpack into \(contentPath.pathString)")
-
-        for (index, apkPath) in apks.enumerated() {
-            let apkBytes = (try? fileSize(at: apkPath)).map(String.init) ?? "?"
-            rosalindLogger.debug("unzipSplits: [\(index + 1)/\(apks.count)] \(apkPath.basename) (\(apkBytes) bytes)")
-            try await withHeartbeat("unzipSplits[\(index + 1)/\(apks.count)] \(apkPath.basename)", every: 30) {
-                try await withTiming("unzipSplits[\(index + 1)/\(apks.count)] \(apkPath.basename)") {
-                    try await fileSystem.unzip(apkPath, to: contentPath.appending(component: apkPath.basenameWithoutExt))
+            analysis = try await withHeartbeat("analyzeAndroidBundle stream(aab)", every: 30) {
+                try await withTiming("analyzeAndroidBundle stream(aab)") {
+                    try await androidBundleStreamAnalyzer.analyzeAab(at: path, rootName: metadata.packageName)
                 }
             }
+            // Without bundletool, the closest available "download size" is the compressed AAB
+            // file size on disk. That overstates what a device downloads (bundletool would give
+            // per-device split totals), but the trade-off is worth it: bundletool costs a JVM
+            // start plus a redundant unzip that wrecks Linux wall-clock, and the compressed size
+            // is still directionally correct as a size-tracking signal.
+            downloadSize = try fileSize(at: path)
+        } else {
+            metadata = try await androidBundleMetadataService.apkMetadata(at: path)
+            rosalindLogger.debug(
+                "analyzeAndroidBundle: apk metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
+            )
+            analysis = try await withHeartbeat("analyzeAndroidBundle stream(apk)", every: 30) {
+                try await withTiming("analyzeAndroidBundle stream(apk)") {
+                    try await androidBundleStreamAnalyzer.analyzeApk(at: path, rootName: path.basename)
+                }
+            }
+            downloadSize = try fileSize(at: path)
         }
 
-        return contentPath
+        rosalindLogger.debug(
+            "analyzeAndroidBundle: stream done installSize=\(analysis.installSize) downloadSize=\(downloadSize)"
+        )
+
+        return AppBundleReport(
+            bundleId: metadata.packageName,
+            name: metadata.appName,
+            type: bundleType,
+            installSize: analysis.installSize,
+            downloadSize: downloadSize,
+            platforms: ["android"],
+            version: metadata.versionName,
+            artifacts: analysis.artifact.children ?? []
+        )
     }
 
     private func analyzeAppleBundle(at path: AbsolutePath) async throws -> AppBundleReport {

@@ -28,6 +28,7 @@ let package = Package(
         .package(url: "https://github.com/Kolos65/Mockable", .upToNextMajor(from: "0.6.4")),
         .package(url: "https://github.com/apple/swift-protobuf.git", .upToNextMajor(from: "1.38.1")),
         .package(url: "https://github.com/apple/swift-log", .upToNextMajor(from: "1.5.3")),
+        .package(url: "https://github.com/tuist/ZIPFoundation", .upToNextMajor(from: "0.9.22")),
     ],
     targets: [
         .target(
@@ -40,6 +41,7 @@ let package = Package(
                 .product(name: "MachOKit", package: "MachOKit", condition: .when(platforms: [.macOS])),
                 .product(name: "SwiftProtobuf", package: "swift-protobuf"),
                 .product(name: "Logging", package: "swift-log"),
+                .product(name: "ZIPFoundation", package: "ZIPFoundation"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("StrictConcurrency"),
