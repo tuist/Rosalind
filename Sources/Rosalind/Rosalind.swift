@@ -175,12 +175,12 @@ public struct Rosalind: Rosalindable {
                     try await androidBundleStreamAnalyzer.analyzeAab(at: path, rootName: metadata.packageName)
                 }
             }
-            // Without bundletool, the closest available "download size" is the compressed AAB
-            // file size on disk. That overstates what a device downloads (bundletool would give
-            // per-device split totals), but the trade-off is worth it: bundletool costs a JVM
-            // start plus a redundant unzip that wrecks Linux wall-clock, and the compressed size
-            // is still directionally correct as a size-tracking signal.
-            downloadSize = try fileSize(at: path)
+            // `downloadSize` is the sum of the compressed bytes for entries that the reference
+            // Play Store split would ship. That approximates bundletool's `get-size total`
+            // without a JVM: the streaming analyzer already applies the device filter to lib/,
+            // res/ densities, and res/ locales, and the ZIP central directory carries each
+            // entry's compressed size.
+            downloadSize = analysis.downloadSize
         } else {
             metadata = try await androidBundleMetadataService.apkMetadata(at: path)
             rosalindLogger.debug(
@@ -191,6 +191,7 @@ public struct Rosalind: Rosalindable {
                     try await androidBundleStreamAnalyzer.analyzeApk(at: path, rootName: path.basename)
                 }
             }
+            // An APK is what a device downloads, so its own file size is the download size.
             downloadSize = try fileSize(at: path)
         }
 

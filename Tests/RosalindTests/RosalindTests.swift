@@ -293,25 +293,93 @@ struct RosalindTests {
 
     @Test func aabBundle() async throws {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
-            // Given: a real AAB-shaped ZIP with a `base/` subtree. The streaming analyzer reads
-            // entries straight out of it, so tests need to give it a real archive rather than a
-            // stub tree on disk.
+            // Given: a real AAB-shaped ZIP whose `base/` subtree includes entries a device does
+            // download (dex, arm64-v8a libs, xxhdpi drawables, en values) and entries a Play
+            // Store split for the reference device would strip (other ABIs, other densities,
+            // other locales). The streaming analyzer walks the archive directly, so tests
+            // build a real ZIP rather than a stub tree on disk.
             let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
+
+            let keptDex = "dex-bytecode"
             try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "dex"))
-            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res"))
-            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "lib", "arm64-v8a"))
             try await fileSystem.writeText(
-                "dex-bytecode",
+                keptDex,
                 at: aabContentsPath.appending(components: "base", "dex", "classes.dex")
             )
+
+            let keptArsc = "resources"
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res"))
             try await fileSystem.writeText(
-                "resources",
+                keptArsc,
                 at: aabContentsPath.appending(components: "base", "res", "resources.arsc")
             )
+
+            let keptLib = "native-lib"
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "lib", "arm64-v8a"))
             try await fileSystem.writeText(
-                "native-lib",
+                keptLib,
                 at: aabContentsPath.appending(components: "base", "lib", "arm64-v8a", "libapp.so")
             )
+
+            let keptDrawable = "keeper-icon"
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res", "drawable-xxhdpi"))
+            try await fileSystem.writeText(
+                keptDrawable,
+                at: aabContentsPath.appending(components: "base", "res", "drawable-xxhdpi", "ic_keep.png")
+            )
+
+            let keptValues = "keep-string"
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res", "values-en"))
+            try await fileSystem.writeText(
+                keptValues,
+                at: aabContentsPath.appending(components: "base", "res", "values-en", "strings.xml")
+            )
+
+            // Reference-device filter drops these: a different ABI, a different density bucket,
+            // and a different locale. If any of them survived we'd count them in the reported
+            // sizes, which is the whole regression Ramon flagged on canary.6.
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "lib", "x86_64"))
+            try await fileSystem.writeText(
+                "unused-x86_64-lib",
+                at: aabContentsPath.appending(components: "base", "lib", "x86_64", "libapp.so")
+            )
+
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res", "drawable-mdpi"))
+            try await fileSystem.writeText(
+                "unused-mdpi-icon",
+                at: aabContentsPath.appending(components: "base", "res", "drawable-mdpi", "ic_drop.png")
+            )
+
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res", "values-fr"))
+            try await fileSystem.writeText(
+                "unused-fr-string",
+                at: aabContentsPath.appending(components: "base", "res", "values-fr", "strings.xml")
+            )
+
+            // These AAB-only protobuf metadata files never reach a device. bundletool converts
+            // `resources.pb` into a filtered `resources.arsc`, `manifest/AndroidManifest.xml`
+            // into a binary XML file per split, and drops `native.pb`/`assets.pb` entirely.
+            // Rosalind can't regenerate the device-format equivalents without a JVM, so it
+            // simply skips these so the size numbers don't overshoot bundletool by ~6 MB of
+            // protobuf that never ships.
+            try await fileSystem.writeText(
+                "protobuf-resources",
+                at: aabContentsPath.appending(components: "base", "resources.pb")
+            )
+            try await fileSystem.writeText(
+                "protobuf-native",
+                at: aabContentsPath.appending(components: "base", "native.pb")
+            )
+            try await fileSystem.writeText(
+                "protobuf-assets",
+                at: aabContentsPath.appending(components: "base", "assets.pb")
+            )
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "manifest"))
+            try await fileSystem.writeText(
+                "protobuf-manifest",
+                at: aabContentsPath.appending(components: "base", "manifest", "AndroidManifest.xml")
+            )
+
             // Non-`base/` entries mimic packaging metadata that must be excluded from the report.
             try await fileSystem.writeText(
                 "packaging-metadata",
@@ -339,15 +407,39 @@ struct RosalindTests {
             #expect(got.version == "2.0")
             #expect(got.platforms == ["android"])
 
-            // installSize is the decompressed byte total of every entry under base/, download
-            // size falls back to the compressed AAB file size on disk (no bundletool).
-            #expect(got.installSize == "dex-bytecode".utf8.count + "resources".utf8.count + "native-lib".utf8.count)
+            // installSize is the decompressed byte total of the entries the reference device
+            // installs. Filtered-out ABIs, densities, and locales must not contribute.
+            let expectedInstallSize = [keptDex, keptArsc, keptLib, keptDrawable, keptValues]
+                .map(\.utf8.count)
+                .reduce(0, +)
+            #expect(got.installSize == expectedInstallSize)
+
+            // downloadSize is the compressed-byte total of the same kept entries, so it is
+            // strictly less than the compressed AAB on disk (which also carries the dropped
+            // splits plus packaging metadata).
             #expect(got.downloadSize != nil)
+            if let downloadSize = got.downloadSize {
+                let aabFileSize = try await Int(fileSystem.fileSizeInBytes(at: aabPath) ?? 0)
+                #expect(downloadSize < aabFileSize)
+                #expect(downloadSize > 0)
+            }
 
             // The tree is rooted at the package name, and the `base/` prefix is stripped so the
-            // report doesn't leak the AAB packaging shape.
+            // report doesn't leak the AAB packaging shape. Filtered-out directories don't show up.
             let artifactPaths = got.artifacts.map(\.path)
             #expect(artifactPaths.sorted() == ["com.test.app/dex", "com.test.app/lib", "com.test.app/res"])
+
+            let libArtifact = got.artifacts.first(where: { $0.path == "com.test.app/lib" })
+            #expect(libArtifact?.children?.map(\.path) == ["com.test.app/lib/arm64-v8a"])
+
+            let resArtifact = got.artifacts.first(where: { $0.path == "com.test.app/res" })
+            #expect(
+                resArtifact?.children?.map(\.path).sorted() == [
+                    "com.test.app/res/drawable-xxhdpi",
+                    "com.test.app/res/resources.arsc",
+                    "com.test.app/res/values-en",
+                ]
+            )
 
             let dexArtifact = got.artifacts
                 .first(where: { $0.path == "com.test.app/dex" })?
@@ -355,8 +447,7 @@ struct RosalindTests {
                 .first(where: { $0.path == "com.test.app/dex/classes.dex" })
             #expect(dexArtifact?.artifactType == .binary)
 
-            let arscArtifact = got.artifacts
-                .first(where: { $0.path == "com.test.app/res" })?
+            let arscArtifact = resArtifact?
                 .children?
                 .first(where: { $0.path == "com.test.app/res/resources.arsc" })
             #expect(arscArtifact?.artifactType == .asset)
