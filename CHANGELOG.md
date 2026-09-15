@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-09-15
+### Details
+#### <!-- 4 -->⚡ Performance
+- Stream-analyze Android bundles from the archive without extracting by @pepicrft in [#538](https://github.com/tuist/Rosalind/pull/538)
+
 ## [0.8.0] - 2026-09-15
 ### Details
 #### <!-- 0 -->🚀 Features
@@ -119,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## New Contributors
 * @renovate[bot] made their first contribution in [#5](https://github.com/tuist/Rosalind/pull/5)
 * @pepicrft made their first contribution in [#3](https://github.com/tuist/Rosalind/pull/3)
+[0.8.1]: https://github.com/tuist/Rosalind/compare/0.8.0..0.8.1
 [0.8.0]: https://github.com/tuist/Rosalind/compare/0.7.99..0.8.0
 [0.7.99]: https://github.com/tuist/Rosalind/compare/0.7.98..0.7.99
 [0.7.98]: https://github.com/tuist/Rosalind/compare/0.7.97..0.7.98
