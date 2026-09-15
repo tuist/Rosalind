@@ -11,7 +11,10 @@ struct RosalindTests {
     private let appBundleLoader = MockAppBundleLoading()
     private let shasumCalculator = MockShasumCalculating()
     private let androidBundleMetadataService = MockAndroidBundleMetadataServicing()
-    private let androidAppBundleSplitService = MockAndroidAppBundleSplitServicing()
+    /// The stream analyzer has no external dependencies (it inflates ZIP entries via
+    /// ZIPFoundation and hashes bytes with swift-crypto), so tests exercise the real
+    /// implementation against fixture ZIPs built at runtime with `zipFileOrDirectoryContent`.
+    private let androidBundleStreamAnalyzer: AndroidBundleStreamAnalyzing = AndroidBundleStreamAnalyzer()
     #if os(macOS)
         private let assetUtilController = MockAssetUtilControlling()
     #endif
@@ -30,7 +33,7 @@ struct RosalindTests {
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
                 androidBundleMetadataService: androidBundleMetadataService,
-                androidAppBundleSplitService: androidAppBundleSplitService,
+                androidBundleStreamAnalyzer: androidBundleStreamAnalyzer,
                 assetUtilController: assetUtilController
             )
         }
@@ -47,7 +50,7 @@ struct RosalindTests {
                 appBundleLoader: appBundleLoader,
                 shasumCalculator: shasumCalculator,
                 androidBundleMetadataService: androidBundleMetadataService,
-                androidAppBundleSplitService: androidAppBundleSplitService
+                androidBundleStreamAnalyzer: androidBundleStreamAnalyzer
             )
         }
     #endif
@@ -290,23 +293,33 @@ struct RosalindTests {
 
     @Test func aabBundle() async throws {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
-            // Given
-            let aabPath = temporaryDirectory.appending(component: "app.aab")
-            try await fileSystem.writeText("bundle", at: aabPath)
+            // Given: a real AAB-shaped ZIP with a `base/` subtree. The streaming analyzer reads
+            // entries straight out of it, so tests need to give it a real archive rather than a
+            // stub tree on disk.
+            let aabContentsPath = temporaryDirectory.appending(component: "aab-contents")
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "dex"))
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "res"))
+            try await fileSystem.makeDirectory(at: aabContentsPath.appending(components: "base", "lib", "arm64-v8a"))
+            try await fileSystem.writeText(
+                "dex-bytecode",
+                at: aabContentsPath.appending(components: "base", "dex", "classes.dex")
+            )
+            try await fileSystem.writeText(
+                "resources",
+                at: aabContentsPath.appending(components: "base", "res", "resources.arsc")
+            )
+            try await fileSystem.writeText(
+                "native-lib",
+                at: aabContentsPath.appending(components: "base", "lib", "arm64-v8a", "libapp.so")
+            )
+            // Non-`base/` entries mimic packaging metadata that must be excluded from the report.
+            try await fileSystem.writeText(
+                "packaging-metadata",
+                at: aabContentsPath.appending(components: "BundleConfig.pb")
+            )
 
-            // bundletool hands back the splits the reference device installs.
-            let splitsPath = temporaryDirectory.appending(component: "splits")
-            try await fileSystem.makeDirectory(at: splitsPath)
-            try await makeSplit(
-                named: "base-master",
-                in: splitsPath,
-                files: ["classes.dex": "dex-bytecode", "resources.arsc": "resources"]
-            )
-            try await makeSplit(
-                named: "base-arm64_v8a",
-                in: splitsPath,
-                files: ["lib/arm64-v8a/libapp.so": "native-lib"]
-            )
+            let aabPath = temporaryDirectory.appending(component: "app.aab")
+            try await fileSystem.zipFileOrDirectoryContent(at: aabContentsPath, to: aabPath)
 
             given(androidBundleMetadataService)
                 .aabMetadata(at: .any)
@@ -315,9 +328,6 @@ struct RosalindTests {
                     versionName: "2.0",
                     appName: "Test App"
                 ))
-            given(androidAppBundleSplitService)
-                .split(of: .any, in: .any)
-                .willReturn(AndroidAppBundleSplit(splitsPath: splitsPath, downloadSize: 1234))
 
             // When
             let got = try await subject.analyzeAppBundle(at: aabPath)
@@ -329,43 +339,30 @@ struct RosalindTests {
             #expect(got.version == "2.0")
             #expect(got.platforms == ["android"])
 
-            // The download size is bundletool's, and the install size covers the same splits.
-            #expect(got.downloadSize == 1234)
-            #expect(got.installSize == 31)
+            // installSize is the decompressed byte total of every entry under base/, download
+            // size falls back to the compressed AAB file size on disk (no bundletool).
+            #expect(got.installSize == "dex-bytecode".utf8.count + "resources".utf8.count + "native-lib".utf8.count)
+            #expect(got.downloadSize != nil)
 
-            // Each split stays distinguishable in the breakdown.
+            // The tree is rooted at the package name, and the `base/` prefix is stripped so the
+            // report doesn't leak the AAB packaging shape.
             let artifactPaths = got.artifacts.map(\.path)
-            #expect(artifactPaths.sorted() == ["com.test.app/base-arm64_v8a", "com.test.app/base-master"])
+            #expect(artifactPaths.sorted() == ["com.test.app/dex", "com.test.app/lib", "com.test.app/res"])
 
             let dexArtifact = got.artifacts
-                .first(where: { $0.path == "com.test.app/base-master" })?
+                .first(where: { $0.path == "com.test.app/dex" })?
                 .children?
-                .first(where: { $0.path == "com.test.app/base-master/classes.dex" })
+                .first(where: { $0.path == "com.test.app/dex/classes.dex" })
             #expect(dexArtifact?.artifactType == .binary)
 
             let arscArtifact = got.artifacts
-                .first(where: { $0.path == "com.test.app/base-master" })?
+                .first(where: { $0.path == "com.test.app/res" })?
                 .children?
-                .first(where: { $0.path == "com.test.app/base-master/resources.arsc" })
+                .first(where: { $0.path == "com.test.app/res/resources.arsc" })
             #expect(arscArtifact?.artifactType == .asset)
-        }
-    }
 
-    private func makeSplit(
-        named name: String,
-        in splitsPath: AbsolutePath,
-        files: [String: String]
-    ) async throws {
-        try await fileSystem.runInTemporaryDirectory(prefix: name) { contentsPath in
-            for (path, contents) in files {
-                let filePath = contentsPath.appending(try RelativePath(validating: path))
-                try await fileSystem.makeDirectory(at: filePath.parentDirectory)
-                try await fileSystem.writeText(contents, at: filePath)
-            }
-            try await fileSystem.zipFileOrDirectoryContent(
-                at: contentsPath,
-                to: splitsPath.appending(component: "\(name).apk")
-            )
+            // Nothing under `BundleConfig.pb` (non-base entry) should show up in the report.
+            #expect(!artifactPaths.contains(where: { $0.contains("BundleConfig") }))
         }
     }
 
