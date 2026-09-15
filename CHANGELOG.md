@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-09-15
+### Details
+#### <!-- 1 -->🐛 Bug Fixes
+- Apply a reference-device split filter to AAB sizes by @pepicrft in [#539](https://github.com/tuist/Rosalind/pull/539)
+
 ## [0.8.1] - 2026-09-15
 ### Details
 #### <!-- 4 -->⚡ Performance
@@ -124,6 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## New Contributors
 * @renovate[bot] made their first contribution in [#5](https://github.com/tuist/Rosalind/pull/5)
 * @pepicrft made their first contribution in [#3](https://github.com/tuist/Rosalind/pull/3)
+[0.8.2]: https://github.com/tuist/Rosalind/compare/0.8.1..0.8.2
 [0.8.1]: https://github.com/tuist/Rosalind/compare/0.8.0..0.8.1
 [0.8.0]: https://github.com/tuist/Rosalind/compare/0.7.99..0.8.0
 [0.7.99]: https://github.com/tuist/Rosalind/compare/0.7.98..0.7.99
