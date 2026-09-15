@@ -52,20 +52,34 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     }
 
     func apkMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata {
-        let aapt2 = try await resolveAapt2Path()
+        let aapt2 = try await withTiming("aapt2.resolve") {
+            try await resolveAapt2Path()
+        }
+        rosalindLogger.debug("aapt2 resolved to: \(aapt2)")
 
-        await Self.poolLock.acquire()
+        rosalindLogger.debug("apkMetadata(\(path.basename)): waiting on PoolLock")
+        try await withHeartbeat("apkMetadata(\(path.basename)) PoolLock acquire", every: 30) {
+            await Self.poolLock.acquire()
+        }
+        rosalindLogger.debug("apkMetadata(\(path.basename)): PoolLock acquired")
 
         let output: String
         do {
-            output = try await commandRunner.run(arguments: [aapt2, "dump", "badging", path.pathString])
-                .concatenatedString()
+            output = try await withHeartbeat("aapt2 dump badging (\(path.basename))", every: 30) {
+                try await withTiming("aapt2 dump badging (\(path.basename))") {
+                    try await commandRunner
+                        .run(arguments: [aapt2, "dump", "badging", path.pathString])
+                        .concatenatedString()
+                }
+            }
         } catch {
             await Self.poolLock.release()
+            rosalindLogger.debug("apkMetadata(\(path.basename)): PoolLock released after error")
             throw error
         }
 
         await Self.poolLock.release()
+        rosalindLogger.debug("apkMetadata(\(path.basename)): PoolLock released")
 
         let packageName = parseValue(from: output, pattern: "package: name='([^']+)'")
         let versionName = parseValue(from: output, pattern: "versionName='([^']+)'")
@@ -83,10 +97,16 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
     }
 
     func aabMetadata(at path: AbsolutePath) async throws -> AndroidBundleMetadata {
-        try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
-            let unzippedPath = temporaryDirectory.appending(component: path.basename)
-            try await fileSystem.unzip(path, to: unzippedPath)
-            return try await aabMetadata(fromExtractedContentsAt: unzippedPath)
+        try await withTiming("aabMetadata(\(path.basename))") {
+            try await fileSystem.runInTemporaryDirectory(prefix: "aab-metadata") { temporaryDirectory in
+                let unzippedPath = temporaryDirectory.appending(component: path.basename)
+                try await withHeartbeat("aabMetadata unzip (\(path.basename))", every: 30) {
+                    try await withTiming("aabMetadata unzip (\(path.basename))") {
+                        try await fileSystem.unzip(path, to: unzippedPath)
+                    }
+                }
+                return try await aabMetadata(fromExtractedContentsAt: unzippedPath)
+            }
         }
     }
 
@@ -96,7 +116,10 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
             throw AndroidBundleMetadataServiceError.manifestNotFound(extractedPath)
         }
 
-        let data = try await fileSystem.readFile(at: manifestPath)
+        let data = try await withTiming("aabMetadata read AndroidManifest.xml") {
+            try await fileSystem.readFile(at: manifestPath)
+        }
+        rosalindLogger.debug("aabMetadata AndroidManifest.xml size: \(data.count) bytes")
         let xmlNode = try Aapt_Pb_XmlNode(serializedBytes: data)
         let attributes = xmlNode.element.attribute
         let packageName = attributes.first(where: { $0.name == "package" })?.value
@@ -109,7 +132,10 @@ struct AndroidBundleMetadataService: AndroidBundleMetadataServicing {
         var resourceTable: Aapt_Pb_ResourceTable?
         let resourcesPath = extractedPath.appending(components: "base", "resources.pb")
         if try await fileSystem.exists(resourcesPath) {
-            let resourcesData = try await fileSystem.readFile(at: resourcesPath)
+            let resourcesData = try await withTiming("aabMetadata read resources.pb") {
+                try await fileSystem.readFile(at: resourcesPath)
+            }
+            rosalindLogger.debug("aabMetadata resources.pb size: \(resourcesData.count) bytes")
             resourceTable = try Aapt_Pb_ResourceTable(serializedBytes: resourcesData)
         }
 

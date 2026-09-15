@@ -131,40 +131,66 @@ public struct Rosalind: Rosalindable {
     /// - Parameter path: Absolute path to the artifact. If it doesn't exist, Rosalind throws.
     /// - Returns: A `RosalindReport` instance that captures the analysis.
     public func analyzeAppBundle(at path: AbsolutePath) async throws -> AppBundleReport {
-        guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
+        let inputSize = (try? fileSize(at: path)).map { "\($0) bytes" } ?? "unknown"
+        rosalindLogger.debug(
+            "analyzeAppBundle: \(path.pathString) (ext=\(path.extension ?? "?"), size=\(inputSize))"
+        )
+        return try await withTiming("analyzeAppBundle(\(path.basename))") {
+            guard try await fileSystem.exists(path) else { throw RosalindError.notFound(path) }
 
-        switch path.extension {
-        case "aab", "apk":
-            return try await analyzeAndroidBundle(at: path)
-        default:
-            return try await analyzeAppleBundle(at: path)
+            switch path.extension {
+            case "aab", "apk":
+                return try await analyzeAndroidBundle(at: path)
+            default:
+                return try await analyzeAppleBundle(at: path)
+            }
         }
     }
 
     private func analyzeAndroidBundle(at path: AbsolutePath) async throws -> AppBundleReport {
         try await fileSystem.runInTemporaryDirectory(prefix: UUID().uuidString) { temporaryDirectory in
+            rosalindLogger.debug("analyzeAndroidBundle: temp dir at \(temporaryDirectory.pathString)")
             let metadata: AndroidBundleMetadata
             let contentPath: AbsolutePath
             let downloadSize: Int
 
             if path.extension == "aab" {
                 metadata = try await androidBundleMetadataService.aabMetadata(at: path)
-                let split = try await androidAppBundleSplitService.split(of: path, in: temporaryDirectory)
+                rosalindLogger.debug(
+                    "analyzeAndroidBundle: aab metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
+                )
+                let split = try await withTiming("androidAppBundleSplitService.split") {
+                    try await androidAppBundleSplitService.split(of: path, in: temporaryDirectory)
+                }
+                rosalindLogger.debug(
+                    "analyzeAndroidBundle: split downloadSize=\(split.downloadSize) at \(split.splitsPath.pathString)"
+                )
                 contentPath = try await unzipSplits(split, packageName: metadata.packageName, in: temporaryDirectory)
                 downloadSize = split.downloadSize
             } else {
                 metadata = try await androidBundleMetadataService.apkMetadata(at: path)
+                rosalindLogger.debug(
+                    "analyzeAndroidBundle: apk metadata packageName=\(metadata.packageName) versionName=\(metadata.versionName)"
+                )
                 contentPath = temporaryDirectory.appending(component: path.basename)
-                try await fileSystem.unzip(path, to: contentPath)
+                try await withHeartbeat("analyzeAndroidBundle unzip apk", every: 30) {
+                    try await withTiming("analyzeAndroidBundle unzip apk (\(path.basename))") {
+                        try await fileSystem.unzip(path, to: contentPath)
+                    }
+                }
                 downloadSize = try fileSize(at: path)
             }
 
             let artifactPath = try await pathToArtifact(contentPath)
-            let artifact = try await traverse(
-                artifact: artifactPath,
-                baseArtifact: artifactPath,
-                isAndroid: true
-            )
+            let artifact = try await withHeartbeat("analyzeAndroidBundle traverse", every: 30) {
+                try await withTiming("analyzeAndroidBundle traverse") {
+                    try await traverse(
+                        artifact: artifactPath,
+                        baseArtifact: artifactPath,
+                        isAndroid: true
+                    )
+                }
+            }
 
             return AppBundleReport(
                 bundleId: metadata.packageName,
@@ -189,8 +215,17 @@ public struct Rosalind: Rosalindable {
         let contentPath = temporaryDirectory.appending(component: packageName)
         try await fileSystem.makeDirectory(at: contentPath)
 
-        for apkPath in try await fileSystem.glob(directory: split.splitsPath, include: ["*.apk"]).collect().sorted() {
-            try await fileSystem.unzip(apkPath, to: contentPath.appending(component: apkPath.basenameWithoutExt))
+        let apks = try await fileSystem.glob(directory: split.splitsPath, include: ["*.apk"]).collect().sorted()
+        rosalindLogger.debug("unzipSplits: \(apks.count) split apks to unpack into \(contentPath.pathString)")
+
+        for (index, apkPath) in apks.enumerated() {
+            let apkBytes = (try? fileSize(at: apkPath)).map(String.init) ?? "?"
+            rosalindLogger.debug("unzipSplits: [\(index + 1)/\(apks.count)] \(apkPath.basename) (\(apkBytes) bytes)")
+            try await withHeartbeat("unzipSplits[\(index + 1)/\(apks.count)] \(apkPath.basename)", every: 30) {
+                try await withTiming("unzipSplits[\(index + 1)/\(apks.count)] \(apkPath.basename)") {
+                    try await fileSystem.unzip(apkPath, to: contentPath.appending(component: apkPath.basenameWithoutExt))
+                }
+            }
         }
 
         return contentPath
@@ -282,7 +317,9 @@ public struct Rosalind: Rosalindable {
             // On Android, resource files (PNGs, XMLs, etc.) are already separate
             // files under res/ — resources.pb is just an index, not a container.
             case .asset where !isAndroid:
-                let infos = try await assetUtilController.info(at: artifact.path)
+                let infos = try await withTiming("assetUtil info(\(artifact.path.basename))") {
+                    try await assetUtilController.info(at: artifact.path)
+                }
                 children = try infos.compactMap { info -> AppBundleArtifact? in
                     guard let sizeOnDisk = info.sizeOnDisk,
                           let sha1Digest = info.sha1Digest,
@@ -301,10 +338,12 @@ public struct Rosalind: Rosalindable {
                 }
         #endif
         case .directory:
-            children = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
-                .asyncMap {
-                    try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact, isAndroid: isAndroid)
-                }
+            let entries = try await fileSystem.glob(directory: artifact.path, include: ["*"]).collect().sorted()
+            let relative = artifact.path.relative(to: baseArtifact.path).pathString
+            rosalindLogger.debug("traverse: entering \(relative) (\(entries.count) entries)")
+            children = try await entries.asyncMap {
+                try await traverse(artifact: pathToArtifact($0), baseArtifact: baseArtifact, isAndroid: isAndroid)
+            }
         default:
             children = nil
         }
